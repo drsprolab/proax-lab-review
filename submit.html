@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>논문 리뷰 제출 · PRO-AX Lab Review</title>
+<meta name="description" content="이름·주차·제출일을 적고 APA 인용을 붙여 넣으면 서지가 자동 입력됩니다. 8개 항목을 작성한 뒤 확인하고 제출합니다." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" />
+<link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="css/components.css" />
+</head>
+<body>
+<a class="skip-link" href="#step-info">본문으로 건너뛰기</a>
+
+<header class="site-header">
+  <div class="container header-row">
+    <a class="brand" href="index.html" aria-label="PRO-AX Lab Review 홈">
+      <span class="brand-mark" aria-hidden="true">P</span>
+      <span class="brand-text">
+        <span class="brand-name">PRO-AX Lab Review</span>
+        <span class="brand-sub">Weekly Paper Review</span>
+      </span>
+    </a>
+    <div class="header-actions">
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="테마 전환">🌙</button>
+      <a class="btn" href="concept.html">Concept map 제출</a>
+      <a class="btn" href="index.html">목록 보기</a>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  <a class="daily-back" href="index.html">← 제출된 리뷰 보기</a>
+
+  <header class="page-head">
+    <div class="eyebrow">SUBMISSION · WEEKLY REVIEW</div>
+    <h1>논문 리뷰 제출</h1>
+    <p class="lede">기본 정보를 적고 APA 인용을 붙여 넣으면 서지가 자동으로 채워집니다. 이어서 8개 항목을 직접 타이핑합니다.</p>
+  </header>
+
+  <!-- ============ 1) 작성 ============ -->
+  <div id="formView">
+
+    <!-- 기본 정보 -->
+    <section class="csec" id="step-info" aria-labelledby="infoTitle">
+      <div class="csec-head">
+        <span class="csec-num">01</span>
+        <h2 id="infoTitle">기본 정보</h2>
+        <span class="csec-sub">이름과 제출 주차, 제출일을 적습니다.</span>
+      </div>
+      <div class="csec-body">
+        <div class="form-grid">
+          <div class="field">
+            <label for="f-student">이름 <span class="required">*</span></label>
+            <input id="f-student" type="text" placeholder="예: 홍길동" autocomplete="name" />
+          </div>
+          <div class="field">
+            <label for="f-week">제출 주차 <span class="required">*</span></label>
+            <select id="f-week"></select>
+          </div>
+          <div class="field">
+            <label for="f-date">제출일</label>
+            <input id="f-date" type="date" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- APA -->
+    <section class="csec" id="step-apa" aria-labelledby="apaTitle">
+      <div class="csec-head">
+        <span class="csec-num">02</span>
+        <h2 id="apaTitle">논문 서지 (APA)</h2>
+        <span class="csec-sub">APA 양식 참고문헌을 붙여 넣으면 제목·저자·저널명·DOI가 자동으로 입력됩니다.</span>
+      </div>
+      <div class="csec-body">
+        <div class="f-field">
+          <label class="f-label" for="f-apa">APA 인용문 <span class="required">*</span></label>
+          <textarea id="f-apa" rows="3" placeholder="Sitzmann, T., &amp; Ely, K. (2011). A meta-analysis of self-regulated learning in work-related training and educational attainment: What we know and where we need to go. Psychological Bulletin, 137(3), 421-452. https://doi.org/10.1037/a0022777"></textarea>
+          <div class="f-bar">
+            <span class="f-hint" id="apaNote">붙여 넣으면 아래 항목이 자동으로 채워집니다. 잘못 채워지면 직접 고치세요.</span>
+          </div>
+        </div>
+
+        <div class="apa-fields">
+          <div class="field">
+            <label for="f-title">제목</label>
+            <input id="f-title" type="text" placeholder="자동 입력" />
+          </div>
+          <div class="field">
+            <label for="f-authors">저자</label>
+            <input id="f-authors" type="text" placeholder="자동 입력" />
+          </div>
+          <div class="field">
+            <label for="f-journal">저널명</label>
+            <input id="f-journal" type="text" placeholder="자동 입력" />
+          </div>
+          <div class="field">
+            <label for="f-doi">DOI / 링크</label>
+            <input id="f-doi" type="text" placeholder="자동 입력" />
+          </div>
+          <div class="field">
+            <label for="f-year">발행 연도</label>
+            <input id="f-year" type="number" min="1900" max="2100" step="1" placeholder="자동 입력" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8개 항목 -->
+    <div class="composer" id="composer" style="margin-top:22px"></div>
+
+    <div class="actionbar">
+      <div class="ab-info">
+        <span>작성 <b id="fillCount">0 / 8</b> 항목</span>
+        <span id="saveState">임시 저장된 내용 없음</span>
+      </div>
+      <div class="ab-btns">
+        <button class="btn" type="button" id="draftBtn">임시 저장</button>
+        <button class="btn btn-primary" type="button" id="confirmBtn">확인하기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 2) 확인 (한 장 문서) ============ -->
+  <div id="confirmView" hidden>
+    <div class="doc-toolbar">
+      <p class="doc-tip">작성한 내용을 한 장의 문서로 확인합니다. 고칠 부분이 있으면 <b>수정하기</b>를 누르세요.</p>
+      <div class="doc-actions">
+        <button class="btn" type="button" id="backBtn">수정하기</button>
+        <button class="btn btn-primary" type="button" id="submitBtn">제출하기</button>
+      </div>
+    </div>
+
+    <div class="done-bar" id="doneBar" hidden role="status">
+      <div class="done-text">
+        <strong>✓ 제출이 완료되었습니다.</strong>
+        <span>아래 문서를 PDF로 저장해 보관할 수 있습니다. 인쇄 창에서 대상을 <b>PDF로 저장</b>으로 고르세요.</span>
+      </div>
+      <div class="doc-actions">
+        <a class="btn" id="doneView" href="index.html">본문 보기</a>
+        <button class="btn btn-primary" type="button" id="pdfBtn">PDF로 받기</button>
+      </div>
+    </div>
+
+    <article class="doc" id="sheet" aria-label="제출 내용 확인"></article>
+
+    <div class="actionbar">
+      <div class="ab-info"><span id="sheetSummary">확인 중…</span></div>
+      <div class="ab-btns">
+        <button class="btn" type="button" id="backBtn2">수정하기</button>
+        <button class="btn btn-primary" type="button" id="submitBtn2">제출하기</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-row">
+    <div>
+      <div class="footer-name">PRO-AX Lab Review</div>
+      <p>일요일 논문 리뷰 · 수요일 Concept map</p>
+    </div>
+    <p><a href="index.html">목록 보기</a></p>
+  </div>
+  <div class="container copyright">PRO AnalytiX Lab · Weekly Review Archive</div>
+</footer>
+
+<script src="js/api.js"></script>
+<script src="js/typing.js"></script>
+<script src="js/markdown.js"></script>
+<script src="js/form-schema.js"></script>
+<script src="js/apa.js"></script>
+<script src="js/submit.js"></script>
+</body>
+</html>

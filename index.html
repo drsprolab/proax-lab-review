@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>PRO-AX Lab Review</title>
+<meta name="description" content="PRO-AX Lab 주간 세미나 — 일요일 논문 리뷰, 수요일 Concept map. 제출된 리뷰를 모두가 함께 읽습니다." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" />
+<link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="css/components.css" />
+</head>
+<body>
+<a class="skip-link" href="#reviewList">본문으로 건너뛰기</a>
+
+<header class="site-header">
+  <div class="container header-row">
+    <a class="brand" href="index.html" aria-label="PRO-AX Lab Review 홈">
+      <span class="brand-mark" aria-hidden="true">P</span>
+      <span class="brand-text">
+        <span class="brand-name">PRO-AX Lab Review</span>
+      </span>
+    </a>
+    <div class="header-actions">
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="테마 전환">🌙</button>
+      <a class="btn btn-primary" href="concept.html">＋ Concept map 제출</a>
+      <a class="btn btn-primary" href="submit.html">＋ 리뷰 제출</a>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  <!-- 대문 -->
+  <section class="landing" aria-labelledby="pageTitle">
+    <div class="eyebrow">PRO ANALYTIX LAB · WEEKLY SEMINAR</div>
+    <h1 id="pageTitle">PRO-AX Lab Review</h1>
+    <p class="lede">
+      PRO-AX Lab Critical Review 공간입니다. 한 사람이 읽고 정리한 논문이 연구실 전체의 지식이 됩니다.
+    </p>
+
+    <div class="schedule">
+      <a class="sched" href="submit.html">
+        <span class="sched-day">일요일</span>
+        <span class="sched-body">
+          <span class="sched-title">논문 리뷰</span>
+          <span class="sched-desc">SSCI 논문 1편을 읽고 8개 항목으로 Critical Review를 작성해 제출합니다.</span>
+          <span class="sched-go">제출 페이지로 이동 →</span>
+        </span>
+      </a>
+      <a class="sched" href="concept.html">
+        <span class="sched-day">수요일</span>
+        <span class="sched-body">
+          <span class="sched-title">Concept map</span>
+          <span class="sched-desc">이론과 개념을 정리하고 도식으로 그려 개념 지도를 공유합니다.</span>
+          <span class="sched-go">제출 페이지로 이동 →</span>
+        </span>
+      </a>
+    </div>
+  </section>
+
+  <!-- 논문 리뷰 -->
+  <section class="sec-head" id="reviewList" aria-labelledby="reviewTitle">
+    <h2 id="reviewTitle">논문 리뷰</h2>
+    <span class="sub" id="reviewSub">불러오는 중…</span>
+  </section>
+
+  <div class="weektabs" id="reviewTabs" role="group" aria-label="논문 리뷰 주차 선택"></div>
+  <div class="entries" id="reviewEntries" aria-live="polite" aria-busy="true">
+    <div class="skeleton"></div><div class="skeleton"></div>
+  </div>
+
+  <!-- Concept map -->
+  <section class="sec-head" id="mapList" aria-labelledby="mapTitle">
+    <h2 id="mapTitle">Concept map</h2>
+    <span class="sub" id="mapSub">불러오는 중…</span>
+  </section>
+
+  <div class="weektabs" id="mapTabs" role="group" aria-label="Concept map 주차 선택"></div>
+  <div class="cm-grid" id="mapEntries" aria-live="polite" aria-busy="true">
+    <div class="skeleton"></div><div class="skeleton"></div>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-row">
+    <div>
+      <div class="footer-name">PRO-AX Lab Review</div>
+      <p>일요일 논문 리뷰 · 수요일 Concept map</p>
+    </div>
+    <p><a href="submit.html">논문 리뷰 제출</a> · <a href="concept.html">Concept map 제출</a></p>
+  </div>
+  <div class="container copyright">PRO AnalytiX Lab · Weekly Review Archive</div>
+</footer>
+
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

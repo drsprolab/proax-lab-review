@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Concept map 제출 · PRO-AX Lab Review</title>
+<meta name="description" content="수요일 Concept map 제출 — 중점 이론과 개념, 도식 이미지, Conceptual Map 설명." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" />
+<link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="css/components.css" />
+</head>
+<body>
+<a class="skip-link" href="#step-info">본문으로 건너뛰기</a>
+
+<header class="site-header">
+  <div class="container header-row">
+    <a class="brand" href="index.html" aria-label="PRO-AX Lab Review 홈">
+      <span class="brand-mark" aria-hidden="true">P</span>
+      <span class="brand-text">
+        <span class="brand-name">PRO-AX Lab Review</span>
+        <span class="brand-sub">Weekly Concept Map</span>
+      </span>
+    </a>
+    <div class="header-actions">
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="테마 전환">🌙</button>
+      <a class="btn" href="submit.html">논문 리뷰 제출</a>
+      <a class="btn" href="index.html">목록 보기</a>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  <a class="daily-back" href="index.html">← 목록으로</a>
+
+  <header class="page-head">
+    <div class="eyebrow">SUBMISSION · CONCEPT MAP</div>
+    <h1>Concept map 제출</h1>
+    <p class="lede">수요일 세미나용 개념 지도입니다. 다루는 이론과 개념을 정리하고, 도식을 올리고, 지도를 설명합니다.</p>
+  </header>
+
+  <div id="formView">
+    <!-- 기본 정보 -->
+    <section class="csec" id="step-info" aria-labelledby="infoTitle">
+      <div class="csec-head">
+        <span class="csec-num">01</span>
+        <h2 id="infoTitle">기본 정보</h2>
+        <span class="csec-sub">이름과 제출 주차, 제출일을 적습니다.</span>
+      </div>
+      <div class="csec-body">
+        <div class="form-grid">
+          <div class="field">
+            <label for="f-student">이름 <span class="required">*</span></label>
+            <input id="f-student" type="text" placeholder="예: 홍길동" autocomplete="name" />
+          </div>
+          <div class="field">
+            <label for="f-week">제출 주차 <span class="required">*</span></label>
+            <select id="f-week"></select>
+          </div>
+          <div class="field">
+            <label for="f-date">제출일</label>
+            <input id="f-date" type="date" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 1. 이론과 개념 -->
+    <section class="csec" aria-labelledby="cm1Title">
+      <div class="csec-head">
+        <span class="csec-num">02</span>
+        <h2 id="cm1Title">중점적으로 보는 이론과 개념</h2>
+        <span class="csec-sub">직접 타이핑합니다. 붙여넣기는 지원하지 않습니다.</span>
+      </div>
+      <div class="csec-body">
+        <div class="f-field">
+          <span class="f-label"><span class="f-num">1.</span> 중점적으로 보는 이론과 개념</span>
+          <p class="f-prompt">이번 Concept map에서 중심으로 다루는 이론과 핵심 개념은 무엇인가?</p>
+          <textarea id="ta-cm_theory" rows="6" data-typing-only
+            placeholder="예: 자기결정성이론(SDT) — 자율성·유능감·관계성, 내재적/외재적 동기 구분"
+            aria-label="1. 중점적으로 보는 이론과 개념"></textarea>
+          <div class="f-bar">
+            <span class="f-hint">직접 타이핑 전용</span>
+            <span class="f-count" data-count="cm_theory">0자</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. 도식화 -->
+    <section class="csec" aria-labelledby="cm2Title">
+      <div class="csec-head">
+        <span class="csec-num">03</span>
+        <h2 id="cm2Title">도식화</h2>
+        <span class="csec-sub">개념 지도 이미지를 끌어다 놓거나 클릭해 올립니다.</span>
+      </div>
+      <div class="csec-body">
+        <div class="f-field">
+          <span class="f-label"><span class="f-num">2.</span> 도식 이미지</span>
+          <p class="f-prompt">개념들 사이의 관계를 그림으로 정리해 올려 주세요.</p>
+
+          <div class="dropzone" id="dropzone" role="button" tabindex="0"
+               aria-label="도식 이미지 올리기 — 클릭하거나 파일을 끌어다 놓으세요">
+            <span class="dz-icon" aria-hidden="true">🖼️</span>
+            <span class="dz-title">이미지를 끌어다 놓거나 클릭하세요</span>
+            <span class="dz-sub">PNG · JPG · WEBP · GIF · 최대 10MB</span>
+          </div>
+          <input id="fileInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden />
+
+          <div id="previewWrap" hidden>
+            <img id="preview" class="dz-preview" alt="업로드한 도식 미리보기" />
+            <div class="dz-file">
+              <span id="fileName"></span>
+              <button class="btn btn-sm btn-danger" type="button" id="removeFile">지우기</button>
+            </div>
+          </div>
+          <p class="dz-hint" id="dzHint">도식은 제출할 때 함께 업로드됩니다.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. 설명 -->
+    <section class="csec" aria-labelledby="cm3Title">
+      <div class="csec-head">
+        <span class="csec-num">04</span>
+        <h2 id="cm3Title">Conceptual Map 설명</h2>
+        <span class="csec-sub">직접 타이핑합니다. 붙여넣기는 지원하지 않습니다.</span>
+      </div>
+      <div class="csec-body">
+        <div class="f-field">
+          <span class="f-label"><span class="f-num">3.</span> Conceptual Map 설명</span>
+          <p class="f-prompt">도식에서 개념들이 어떻게 연결되고, 그 관계가 왜 그렇게 성립하는가?</p>
+          <textarea id="ta-cm_explanation" rows="7" data-typing-only
+            placeholder="각 개념을 어떤 기준으로 배치했는지, 화살표가 의미하는 관계가 무엇인지 설명합니다."
+            aria-label="3. Conceptual Map 설명"></textarea>
+          <div class="f-bar">
+            <span class="f-hint">직접 타이핑 전용</span>
+            <span class="f-count" data-count="cm_explanation">0자</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="actionbar">
+      <div class="ab-info">
+        <span>작성 <b id="fillCount">0 / 3</b> 항목</span>
+        <span id="saveState">임시 저장된 내용 없음</span>
+      </div>
+      <div class="ab-btns">
+        <button class="btn" type="button" id="draftBtn">임시 저장</button>
+        <button class="btn btn-primary" type="button" id="confirmBtn">확인하기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 확인 -->
+  <div id="confirmView" hidden>
+    <div class="doc-toolbar">
+      <p class="doc-tip">작성한 내용을 한 장의 문서로 확인합니다. 고칠 부분이 있으면 <b>수정하기</b>를 누르세요.</p>
+      <div class="doc-actions">
+        <button class="btn" type="button" id="backBtn">수정하기</button>
+        <button class="btn btn-primary" type="button" id="submitBtn">제출하기</button>
+      </div>
+    </div>
+
+    <div class="done-bar" id="doneBar" hidden role="status">
+      <div class="done-text">
+        <strong>✓ 제출이 완료되었습니다.</strong>
+        <span>아래 문서를 PDF로 저장해 보관할 수 있습니다. 인쇄 창에서 대상을 <b>PDF로 저장</b>으로 고르세요.</span>
+      </div>
+      <div class="doc-actions">
+        <a class="btn" id="doneView" href="index.html">본문 보기</a>
+        <button class="btn btn-primary" type="button" id="pdfBtn">PDF로 받기</button>
+      </div>
+    </div>
+
+    <article class="doc" id="sheet" aria-label="제출 내용 확인"></article>
+
+    <div class="actionbar">
+      <div class="ab-info"><span id="sheetSummary">확인 중…</span></div>
+      <div class="ab-btns">
+        <button class="btn" type="button" id="backBtn2">수정하기</button>
+        <button class="btn btn-primary" type="button" id="submitBtn2">제출하기</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-row">
+    <div>
+      <div class="footer-name">PRO-AX Lab Review</div>
+      <p>일요일 논문 리뷰 · 수요일 Concept map</p>
+    </div>
+    <p><a href="index.html">목록 보기</a></p>
+  </div>
+  <div class="container copyright">PRO AnalytiX Lab · Weekly Review Archive</div>
+</footer>
+
+<script src="js/api.js"></script>
+<script src="js/typing.js"></script>
+<script src="js/markdown.js"></script>
+<script src="js/concept.js"></script>
+</body>
+</html>
