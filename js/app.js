@@ -195,6 +195,28 @@
     });
   }
 
+  /* ---------- 방금 제출한 글 표시 ----------
+   * 제출 화면이 index.html?submitted=<id>&kind=reviews|maps 로 보내면
+   * 그 카드가 든 묶음을 펼치고, 카드를 강조해 화면 가운데로 가져옵니다.
+   */
+  function markSubmitted(kind, container) {
+    var params = new URLSearchParams(window.location.search);
+    var id = params.get('submitted');
+    if (!id || params.get('kind') !== kind) return;
+
+    var card = container.querySelector('a.inst[href$="id=' + encodeURIComponent(id) + '"]');
+    if (card) {
+      var fold = card.closest('details');
+      if (fold) fold.open = true;
+      card.classList.add('is-mine');
+      card.insertAdjacentHTML('afterbegin', '<span class="mine-flag">방금 제출</span>');
+      card.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }
+    PL.toast('제출이 완료되었습니다. 방금 제출한 글을 확인하세요.', 'ok');
+    // 새로고침해도 다시 뜨지 않게 주소에서 지웁니다.
+    window.history.replaceState(null, '', window.location.pathname);
+  }
+
   /* ---------- 이벤트 ---------- */
 
   function boot() {
@@ -202,6 +224,7 @@
       .then(function (rows) {
         state.reviews = rows || [];
         renderReviews();
+        markSubmitted('reviews', els.reviewEntries);
       })
       .catch(function (err) {
         els.reviewEntries.setAttribute('aria-busy', 'false');
@@ -213,6 +236,7 @@
       .then(function (rows) {
         state.maps = rows || [];
         renderMaps();
+        markSubmitted('maps', els.mapEntries);
       })
       .catch(function (err) {
         els.mapEntries.setAttribute('aria-busy', 'false');

@@ -236,16 +236,11 @@
   }
 
   // 확인 문서 화면을 '제출 완료' 상태로 바꾸고 PDF 저장 버튼을 엽니다.
+  // 제출이 끝나면 바로 대문으로 옮겨, 방금 낸 글을 목록에서 확인하게 합니다(app.js 의 markSubmitted).
+  // PDF 는 제출 전 확인 화면의 'PDF로 받기'로 저장합니다.
   function showSubmitted(opts) {
-    document.querySelectorAll('#confirmView .doc-toolbar, #confirmView .actionbar').forEach(function (node) {
-      node.hidden = true;
-    });
-    var bar = document.getElementById('doneBar');
-    if (!bar) return;
-    bar.hidden = false;
-    document.getElementById('doneView').href = opts.viewUrl;
-    document.getElementById('pdfBtn').addEventListener('click', function () { printPdf(opts.fileName); });
-    window.scrollTo({ top: 0, behavior: 'auto' });
+    window.location.href = 'index.html?submitted=' + encodeURIComponent(opts.id) +
+      '&kind=' + encodeURIComponent(opts.kind);
   }
 
   /* ---------- 포맷 ---------- */

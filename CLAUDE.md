@@ -61,3 +61,4 @@
 python3 -m http.server 8765 --bind 127.0.0.1
 ```
 → http://127.0.0.1:8765/index.html
+- **제출 후 대문으로 이동** (2026-10-20): 제출이 끝나면 `index.html?submitted=<id>&kind=reviews|maps`로 옮겨 그 카드가 든 묶음을 펼치고 '방금 제출'로 강조(`PL.showSubmitted` → `markSubmitted` in `js/app.js`). 제출 완료 화면(doneBar)은 더 이상 쓰지 않음 — PDF는 제출 전 확인 화면의 'PDF로 받기'

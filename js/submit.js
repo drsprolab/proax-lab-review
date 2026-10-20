@@ -509,10 +509,7 @@
         state.dirty = false;
         state.step = 'done';
         PL.toast(ex ? '리뷰를 갱신했습니다.' : '리뷰를 제출했습니다.', 'ok');
-        PL.showSubmitted({
-          viewUrl: 'review.html?id=' + encodeURIComponent(saved.id),
-          fileName: 'CriticalReview_' + data.student + '_' + data.week_key
-        });
+        PL.showSubmitted({ id: saved.id, kind: 'reviews' });
       })
       .catch(function (err) {
         PL.toast(err.message || '제출에 실패했습니다.', 'err');

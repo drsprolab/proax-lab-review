@@ -137,6 +137,13 @@ a.chip-week:hover { border-color: var(--accent); }
 .wk-fold[open] > summary { border-bottom: 1px solid var(--line); }
 .wk-fold > .entries, .wk-fold > .cm-grid { margin: 0; padding: 16px; }
 .wk-sample { border-left: 3px solid var(--accent); }
+
+/* 제출 직후 대문에서 방금 낸 카드 */
+.inst.is-mine { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
+.mine-flag {
+  justify-self: start; font-size: 12px; font-weight: 600; line-height: 1.6;
+  padding: 1px 10px; border-radius: 999px; background: var(--accent); color: var(--paper);
+}
 .wk-sample > summary { color: var(--accent); }
 @media (prefers-reduced-motion: reduce) { .wk-fold > summary::before { transition: none; } }
 

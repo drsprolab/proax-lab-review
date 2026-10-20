@@ -325,10 +325,7 @@
         clearDraft();
         state.step = 'done';
         PL.toast('Concept map를 제출했습니다.', 'ok');
-        PL.showSubmitted({
-          viewUrl: 'concept-detail.html?id=' + encodeURIComponent(saved.id),
-          fileName: 'ConceptMap_' + d.student + '_' + d.week_key
-        });
+        PL.showSubmitted({ id: saved.id, kind: 'maps' });
       })
       .catch(function (err) {
         PL.toast(err.message || '제출에 실패했습니다.', 'err');
