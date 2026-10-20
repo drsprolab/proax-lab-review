@@ -14,7 +14,10 @@
 - **개인 비밀번호 없음**
 - SSCI 확인 체크박스·자동 규칙 점검(국문/MDPI 차단)은 **제거함** (`js/rules.js` 삭제)
 - 대문 문구: "PRO-AX Lab Critical Review 공간입니다. 한 사람이 읽고 정리한 논문이 연구실 전체의 지식이 됩니다."
-- 대문 문구 아래 **주의사항** 박스(`.notice`): 1. SSCI 논문만 가능 (MDPI 및 Frontiers 계열 논문 불가) 2. 본인의 인지적 노력으로 리뷰 진행 3. 시간엄수 — 안내 문구일 뿐, 자동 점검은 하지 않음
+- 대문 문구 아래 **주의사항** 박스(`.notice`): 1. SSCI 논문만 가능 (MDPI 및 Frontiers 계열 논문 불가) 2. 본인의 인지적 노력으로 리뷰 진행 3. 시간엄수
+- **학술지 자동 점검** (2026-10-20 교수님 요청으로 다시 추가): APA 입력 시 MDPI·Frontiers 계열이거나 SSCI 미등재면 빨간 경고(`#jcheckWarn`)를 띄우고 확인·제출 버튼을 막음. `js/journal-check.js` (`JCHECK.check`)
+  - MDPI·Frontiers: DOI 접두어 10.3390/10.3389, 저널 이름(Frontiers…, MDPI 대표 저널명 정확 일치), Crossref 출판사
+  - SSCI: `data/ssci.json` (`{version, journals:[{title, issn, eissn}]}`)과 ISSN(Crossref)·저널 이름으로 대조. **파일이 없으면 SSCI 검사는 건너뜀** — Clarivate Master Journal List의 SSCI 목록(CSV)을 받아 변환해야 함
 - 헤더의 "＋ Concept map 제출" / "＋ 리뷰 제출" 버튼은 같은 모양(파란 버튼)
 - 대문(index.html) 헤더 맨 앞에 "연구실 홈" 버튼(흰 버튼) → https://hrdpro.hanyang.ac.kr/ (drsprolab.github.io)
 - 목록 카드는 사용자 사이트 **Weekly Insight 목록**(https://hrdpro.hanyang.ac.kr/weekly-insight/, 저장소 `drsprolab/drsprolab.github.io`)과 같은 박스 모양 (`.inst`, `.badge`)
@@ -27,10 +30,10 @@
 - 대문 목록: 카드 맨 위에 **제출자 이름**(`.inst-who`). 주차 탭은 없앰 → **주차 묶음**("2026년 43주차")
   - 마감이 지나면 그 주는 접힌 묶음(`details.wk-fold`)으로 숨김: 논문 리뷰는 다음 주 **화요일 10:00**, Concept map은 그 주 **금요일 10:00** (`FOLD_AFTER`, `FOLD_HOUR` in `js/app.js`)
   - 주차는 월~일(ISO 주). 화요일 "오전"은 10시로 맞춤
-- **제출 마감과 늦은 제출 표시** (2026-10-20): 논문 리뷰 = 그 주 **일요일 10:00**, Concept map = 그 주 **수요일 10:00** (한국 시간, `DEADLINE` in `js/api.js`)
+- **제출 마감과 늦은 제출 표시** (2026-10-20): 논문 리뷰 = 그 주 **일요일 22:00**, Concept map = 그 주 **수요일 22:00** (한국 시간, `DEADLINE` in `js/api.js`)
   - 제출 시간은 학생이 고르는 제출일이 아니라 서버 시각(`updated_at` → `created_at`)으로 판정. 같은 주차를 다시 내면 마지막 제출 시각 기준
   - `PL.submitTime(row, kind)`: 카드(제출자 이름 아래)·본문 상단·제출 정보 표에 "제출 M.D(요일) HH:MM". 늦으면 빨간 점이 깜빡이고 "마감 후 제출"
-  - 10시는 오전으로 해석함(교수님 확인 전). 오후 10시라면 `DEADLINE`의 `hour`만 22로 바꾸면 됨
+  - 교수님 확인: 마감은 **밤 10시** (`hour: 22`)
 - **논문 리뷰 9. 추가 도식 (옵션)** (2026-10-20): 8번 아래 그림 파일 1개 드래그 앤 드롭. `REVIEW_EXTRA` in `js/form-schema.js`, 필드 `r9_diagram_ref/name/type/size`. 드라이브 'PRO-AX Lab Review 도식' 폴더에 저장. 확인 화면·PDF·본문에는 올린 경우에만 9번으로 표시. 같은 주차 재제출 때 새 그림이 없으면 이전 그림 유지
 - **헤더 로고** (2026-10-20): 'P' 글자 대신 연구실 로고 심볼(PRO / AX) `img/lab-mark.png`, 다크 테마는 `img/lab-mark-dark.png`
 

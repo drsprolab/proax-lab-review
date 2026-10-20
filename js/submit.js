@@ -286,6 +286,37 @@
     els.apaNote.textContent = '자동 입력 ' + filled + '/5 항목' +
       (p.notes.length ? ' · ' + p.notes.join(' ') : ' · 값을 확인하고 필요하면 직접 고치세요.');
     refresh();
+    runCheck();
+  }
+
+  /* ---------- 5. 학술지 확인 (MDPI · Frontiers · SSCI) ---------- */
+
+  var jc = { ok: true, reason: '', seq: 0 };
+
+  function showCheck(res) {
+    jc.ok = res.ok;
+    jc.reason = res.reason;
+    var box = el('jcheckWarn');
+    box.textContent = res.ok ? '' : res.reason;
+    box.hidden = res.ok;
+    [els.confirmBtn, el('submitBtn'), el('submitBtn2')].forEach(function (b) { if (b) b.disabled = !res.ok; });
+  }
+
+  // 저널 이름 · DOI 로 확인. 마지막 요청의 결과만 반영합니다.
+  function runCheck() {
+    if (!window.JCHECK) return Promise.resolve({ ok: true });
+    var my = ++jc.seq;
+    return window.JCHECK.check({ journal: val('f-journal'), doi: val('f-doi') || val('f-apa') })
+      .then(function (res) {
+        if (my === jc.seq) showCheck(res);
+        return res;
+      });
+  }
+
+  var checkTimer = null;
+  function queueCheck() {
+    clearTimeout(checkTimer);
+    checkTimer = setTimeout(runCheck, 400);
   }
 
   /* ---------- 6. 작성 개수 ---------- */
@@ -393,6 +424,17 @@
   /* ---------- 9. 확인 / 제출 ---------- */
 
   function goConfirm() {
+    runCheck().then(function (res) {
+      if (res && res.ok === false) {
+        PL.toast(res.reason, 'err');
+        el('f-apa').focus();
+        return;
+      }
+      goConfirmChecked();
+    });
+  }
+
+  function goConfirmChecked() {
     var d = collect();
     if (!d.student) {
       PL.toast('이름을 입력해 주세요.', 'err');
@@ -422,6 +464,7 @@
   }
 
   function submit(silentRepeat) {
+    if (!jc.ok) { PL.toast(jc.reason, 'err'); return; }
     var data = collect();
     var ex = findExisting(data.student, data.week_key);
     var empty = ITEMS.filter(function (f) { return !String(data[f.name] || '').trim(); }).length;
@@ -489,6 +532,7 @@
       var node = el(id);
       if (node) node.addEventListener('input', function () { state.dirty = true; refresh(); });
     });
+    ['f-journal', 'f-doi'].forEach(function (id) { el(id).addEventListener('input', queueCheck); });
 
     var apaTimer = null;
     el('f-apa').addEventListener('input', function () {
@@ -572,6 +616,7 @@
           }
         }
         refresh();
+        runCheck();
       })
       .catch(function (err) {
         PL.toast('데이터를 불러오지 못했습니다: ' + (err.message || ''), 'err');
