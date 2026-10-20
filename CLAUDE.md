@@ -18,6 +18,7 @@
 - **학술지 자동 점검** (2026-10-20 교수님 요청으로 다시 추가): APA 입력 시 MDPI·Frontiers 계열이거나 SSCI 미등재면 빨간 경고(`#jcheckWarn`)를 띄우고 확인·제출 버튼을 막음. `js/journal-check.js` (`JCHECK.check`)
   - MDPI·Frontiers: DOI 접두어 10.3390/10.3389, 저널 이름(Frontiers…, MDPI 대표 저널명 정확 일치), Crossref 출판사
   - SSCI: `data/ssci.json` (`{version, journals:[{title, issn, eissn}]}`)과 ISSN(Crossref)·저널 이름으로 대조. **파일이 없으면 SSCI 검사는 건너뜀** — Clarivate Master Journal List의 SSCI 목록(CSV)을 받아 변환해야 함
+  - **2026-10-20 교수님 결정: SSCI 미등재 차단은 보류.** `data/ssci.json`을 만들지 말 것(파일이 없으면 검사가 꺼진 상태). 다시 하라고 할 때만 Clarivate SSCI 목록으로 파일 생성
 - 헤더의 "＋ Concept map 제출" / "＋ 리뷰 제출" 버튼은 같은 모양(파란 버튼)
 - 대문(index.html) 헤더 맨 앞에 "연구실 홈" 버튼(흰 버튼) → https://hrdpro.hanyang.ac.kr/ (drsprolab.github.io)
 - 목록 카드는 사용자 사이트 **Weekly Insight 목록**(https://hrdpro.hanyang.ac.kr/weekly-insight/, 저장소 `drsprolab/drsprolab.github.io`)과 같은 박스 모양 (`.inst`, `.badge`)
