@@ -94,7 +94,9 @@
   var SAMPLE_IDS = {
     reviews: [
       '9e9db159-8474-48dd-8926-3a0bf2ec68ec', // 김예서 — Making transparency transparent
-      'acf4cf36-486f-4393-b0ad-8cb3cb48eaf7'  // 김재현 — Transfer of training
+      'acf4cf36-486f-4393-b0ad-8cb3cb48eaf7', // 김재현 — Transfer of training
+      'e243a4d8-d245-4230-9ea9-1af0a5315646', // 오선빈 — Innovation climate profiles
+      'd6a4e60c-2528-4b86-a1f1-3134565eeb18'  // 최지수 — A Review of Self-Regulated Learning
     ],
     maps: []
   };
