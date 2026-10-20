@@ -36,6 +36,7 @@
   - `PL.submitTime(row, kind)`: 카드(제출자 이름 아래)·본문 상단·제출 정보 표에 "제출 M.D(요일) HH:MM". 늦으면 빨간 점이 깜빡이고 "마감 후 제출"
   - 교수님 확인: 마감은 **밤 10시** (`hour: 22`)
 - **논문 리뷰 9. 추가 도식 (옵션)** (2026-10-20): 8번 아래 그림 파일 1개 드래그 앤 드롭. `REVIEW_EXTRA` in `js/form-schema.js`, 필드 `r9_diagram_ref/name/type/size`. 드라이브 'PRO-AX Lab Review 도식' 폴더에 저장. 확인 화면·PDF·본문에는 올린 경우에만 9번으로 표시. 같은 주차 재제출 때 새 그림이 없으면 이전 그림 유지
+- **Sample 묶음** (2026-10-20): 김예서·김재현 리뷰를 작성 예시로 대문 맨 위 'Sample' 접힌 묶음에 따로 둠(주차 묶음·전체 편수에서 제외). `SAMPLE_IDS` in `js/app.js`에 시트 id로 지정
 - **헤더 로고** (2026-10-20): 'P' 글자 대신 연구실 로고 심볼(PRO / AX) `img/lab-mark.png`, 다크 테마는 `img/lab-mark-dark.png`
 
 ## 현재 상태
