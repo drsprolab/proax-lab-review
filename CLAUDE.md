@@ -16,6 +16,7 @@
 - 대문 문구: "PRO-AX Lab Critical Review 공간입니다. 한 사람이 읽고 정리한 논문이 연구실 전체의 지식이 됩니다."
 - 대문 문구 아래 **주의사항** 박스(`.notice`): 1. SSCI 논문만 가능 (MDPI 및 Frontiers 계열 논문 불가) 2. 본인의 인지적 노력으로 리뷰 진행 3. 시간엄수 — 안내 문구일 뿐, 자동 점검은 하지 않음
 - 헤더의 "＋ Concept map 제출" / "＋ 리뷰 제출" 버튼은 같은 모양(파란 버튼)
+- 대문(index.html) 헤더 맨 앞에 "연구실 홈" 버튼(흰 버튼) → https://hrdpro.hanyang.ac.kr/ (drsprolab.github.io)
 - 목록 카드는 사용자 사이트 **Weekly Insight 목록**(https://hrdpro.hanyang.ac.kr/weekly-insight/, 저장소 `drsprolab/drsprolab.github.io`)과 같은 박스 모양 (`.inst`, `.badge`)
 - 확인 화면과 PDF는 **Weekly Insight 글 페이지** 형식의 보고서 (`.rpt-*` 클래스, `PL.rptHead/rptSection/rptBody` in `js/api.js`)
   - "PDF로 받기"는 확인 화면(제출 전)과 제출 완료 화면 둘 다에 있음 → `PL.printPdf(파일명)` (브라우저 인쇄 → PDF로 저장)

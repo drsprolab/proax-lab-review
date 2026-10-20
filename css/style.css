@@ -96,7 +96,8 @@ main.container { padding-block: 40px 72px; }
 .brand-text { display: grid; }
 .brand-name { font-family: var(--f-display); font-weight: 600; font-size: 19px; }
 .brand-sub { font-family: var(--f-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
-.header-actions { display: flex; align-items: center; gap: 8px; }
+.header-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.header-actions .btn { white-space: nowrap; }
 
 /* ---------- buttons ---------- */
 
