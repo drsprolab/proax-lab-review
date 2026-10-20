@@ -222,7 +222,8 @@
       eyebrow: [PL.fmtDate(d.submitted_at), 'Concept Map', PL.weekShort(d.week_key)],
       title: firstLine || PL.weekLabel(d.week_key) + ' Concept map',
       tags: [PL.weekLabel(d.week_key)],
-      meta: ['작성 ' + (d.student || '—'), '약 ' + PL.readMinutes(d.cm_theory + d.cm_explanation) + '분']
+      who: d.student,
+      meta: ['약 ' + PL.readMinutes(d.cm_theory + d.cm_explanation) + '분']
     });
 
     html += PL.rptSection(1, '중점적으로 보는 이론과 개념', PL.rptBody(d.cm_theory));
@@ -350,6 +351,10 @@
     els.confirmBtn.addEventListener('click', goConfirm);
     el('backBtn').addEventListener('click', goForm);
     el('backBtn2').addEventListener('click', goForm);
+    el('draftPdfBtn').addEventListener('click', function () {
+      var d = collect();
+      PL.printPdf('ConceptMap_' + d.student + '_' + d.week_key);
+    });
     el('submitBtn').addEventListener('click', submit);
     el('submitBtn2').addEventListener('click', submit);
 

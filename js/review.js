@@ -8,6 +8,7 @@
   var PL = window.PL;
   var MD = window.MD;
   var ITEMS = window.REVIEW_ITEMS;
+  var KW = window.REVIEW_KEYWORDS;
 
   var row = null;
   var all = [];
@@ -66,17 +67,20 @@
     if (row.journal_name) html += '<span>' + PL.esc(row.journal_name) + '</span>';
     if (row.pub_year) html += '<span>' + PL.esc(row.pub_year) + '</span>';
     html += '</div>';
-    if (row.doi) {
-      html += '<div class="entry-top" style="margin-top:2px">' +
-        '<a class="chip chip-week" href="' + PL.esc(normalizeUrl(row.doi)) + '" target="_blank" rel="noopener">원문 열기 ↗</a>' +
+    // 원문: 무료 PDF가 있으면 PDF 버튼(아래 findPdf), 항상 Google Scholar 검색
+    var scholar = PL.scholarUrl(row.paper_title, row.doi);
+    if (scholar) {
+      html += '<div class="entry-top" id="srcLinks" style="margin-top:2px">' +
+        '<a class="chip chip-week" href="' + PL.esc(scholar) + '" target="_blank" rel="noopener">Google Scholar에서 원문 찾기 ↗</a>' +
       '</div>';
     }
     html += '</header>';
 
-    /* 목차 */
-    html += '<div class="toc" aria-label="항목 바로가기">' + ITEMS.map(function (f) {
-      return '<a href="#item-' + f.num + '">' + f.num + '. ' + PL.esc(f.label) + '</a>';
-    }).join('') + '</div>';
+    /* 0. 핵심 키워드 */
+    var words = KW.names.map(function (n) { return row[n]; }).filter(function (w) { return String(w || '').trim(); });
+    if (words.length) {
+      html += '<div class="kw-row"><span class="kw-label">핵심 키워드</span>' + PL.rptKeywords(words) + '</div>';
+    }
 
     /* 8개 항목 */
     html += '<ol class="body-items">' + ITEMS.map(function (f) {
@@ -110,6 +114,21 @@
     html += '</article>';
 
     els.detail.innerHTML = html;
+    findPdf();
+  }
+
+  var pdfUrl = null; // null = 아직 조회 전
+
+  function findPdf() {
+    var box = document.getElementById('srcLinks');
+    if (!box || !row.doi) return;
+    var show = function (url) {
+      if (!url || box.querySelector('[data-pdf]')) return;
+      box.insertAdjacentHTML('afterbegin', '<a class="chip chip-week" data-pdf href="' + PL.esc(url) +
+        '" target="_blank" rel="noopener">원문 PDF 받기 ↗</a>');
+    };
+    if (pdfUrl !== null) return show(pdfUrl);
+    PL.openPdfUrl(row.doi).then(function (url) { pdfUrl = url; show(url); });
   }
 
   /* 이전/다음: 같은 주차 순서 기준 */

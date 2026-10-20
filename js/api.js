@@ -214,12 +214,41 @@
     return '<div class="doc-text">' + (html || '<p class="doc-empty">' + esc(emptyText || '작성되지 않았습니다.') + '</p>') + '</div>';
   }
 
-  // opts: { eyebrow: [..], title, lede, tags: [..], meta: [..] }
+  // 핵심 키워드 칩 (빈 값은 건너뜀)
+  function rptKeywords(words) {
+    var list = (words || []).map(function (w) { return String(w || '').trim(); }).filter(Boolean);
+    if (!list.length) return '<div class="doc-text"><p class="doc-empty">작성되지 않았습니다.</p></div>';
+    return '<div class="kw-chips">' + list.map(function (w) { return '<span>' + esc(w) + '</span>'; }).join('') + '</div>';
+  }
+
+  // 논문 원문 찾기: Google Scholar 검색 주소 (제목 기준, 없으면 DOI)
+  function scholarUrl(title, doi) {
+    var q = String(title || '').trim() ? '"' + String(title).trim() + '"' : String(doi || '').trim();
+    return q ? 'https://scholar.google.com/scholar?q=' + encodeURIComponent(q) : '';
+  }
+
+  // 무료로 받을 수 있는 원문 PDF 주소 (OpenAlex 조회, 없으면 '')
+  function openPdfUrl(doi) {
+    var m = String(doi || '').match(/10\.\d{4,}\/[^\s]+/);
+    if (!m) return Promise.resolve('');
+    return fetch('https://api.openalex.org/works/doi:' + encodeURIComponent(m[0]) + '?select=open_access,best_oa_location')
+      .then(function (res) { return res.ok ? res.json() : null; })
+      .then(function (w) {
+        if (!w) return '';
+        var loc = w.best_oa_location || {};
+        return loc.pdf_url || (w.open_access && w.open_access.oa_url) || '';
+      })
+      .catch(function () { return ''; });
+  }
+
+  // opts: { eyebrow: [..], title, who, lede, tags: [..], meta: [..] }
+  // who = 제출자 이름 — 화면과 PDF에서 한눈에 보이도록 제목 아래 크게 표시
   function rptHead(opts) {
     var tags = (opts.tags || []).filter(Boolean);
     return '<header class="rpt-head">' +
       '<p class="rpt-eyebrow">' + (opts.eyebrow || []).filter(Boolean).map(esc).join(' · ') + '</p>' +
       '<h1 class="rpt-title">' + esc(opts.title) + '</h1>' +
+      (opts.who ? '<p class="rpt-who"><span>제출자</span><strong>' + esc(opts.who) + '</strong></p>' : '') +
       (opts.lede ? '<p class="rpt-lede">' + esc(opts.lede) + '</p>' : '') +
       (tags.length ? '<div class="rpt-tags">' + tags.map(function (t) { return '<span>' + esc(t) + '</span>'; }).join('') + '</div>' : '') +
       '<p class="rpt-meta">' + (opts.meta || []).filter(Boolean).map(esc).join(' · ') + '</p>' +
@@ -241,10 +270,20 @@
     return '';
   }
 
-  /* ---------- 제출 완료 → PDF 저장 ---------- */
+  /* ---------- 확인 문서 → PDF 저장 ---------- */
+
+  // PDF 는 브라우저 인쇄의 'PDF로 저장'을 사용합니다(@media print 가 문서만 남김).
+  function printPdf(fileName) {
+    var prev = document.title;
+    var theme = document.documentElement.getAttribute('data-theme');
+    document.title = fileName; // 저장 대화상자의 기본 파일 이름
+    document.documentElement.setAttribute('data-theme', 'light'); // 다크 모드 글자색이 흰 종이에 안 보이지 않게
+    window.print();
+    document.title = prev;
+    document.documentElement.setAttribute('data-theme', theme);
+  }
 
   // 확인 문서 화면을 '제출 완료' 상태로 바꾸고 PDF 저장 버튼을 엽니다.
-  // PDF 는 브라우저 인쇄의 'PDF로 저장'을 사용합니다(@media print 가 문서만 남김).
   function showSubmitted(opts) {
     document.querySelectorAll('#confirmView .doc-toolbar, #confirmView .actionbar').forEach(function (node) {
       node.hidden = true;
@@ -253,15 +292,7 @@
     if (!bar) return;
     bar.hidden = false;
     document.getElementById('doneView').href = opts.viewUrl;
-    document.getElementById('pdfBtn').addEventListener('click', function () {
-      var prev = document.title;
-      var theme = document.documentElement.getAttribute('data-theme');
-      document.title = opts.fileName; // 저장 대화상자의 기본 파일 이름
-      document.documentElement.setAttribute('data-theme', 'light'); // 다크 모드 글자색이 흰 종이에 안 보이지 않게
-      window.print();
-      document.title = prev;
-      document.documentElement.setAttribute('data-theme', theme);
-    });
+    document.getElementById('pdfBtn').addEventListener('click', function () { printPdf(opts.fileName); });
     window.scrollTo({ top: 0, behavior: 'auto' });
   }
 
@@ -449,10 +480,14 @@
     upload: upload,
     fileUrl: fileUrl,
     showSubmitted: showSubmitted,
+    printPdf: printPdf,
     readMinutes: readMinutes,
     rptHead: rptHead,
     rptSection: rptSection,
     rptBody: rptBody,
+    rptKeywords: rptKeywords,
+    scholarUrl: scholarUrl,
+    openPdfUrl: openPdfUrl,
     doiUrl: doiUrl,
     isLocal: BACKEND === 'local',
     esc: esc,
@@ -477,4 +512,17 @@
   };
 
   initTheme();
+
+  // 미리보기 모드 안내 띠 — 제출물이 공유되지 않는다는 것을 모든 화면 위에 알립니다.
+  if (BACKEND === 'local') {
+    var showLocalBanner = function () {
+      var header = document.querySelector('.site-header');
+      if (!header || document.querySelector('.local-banner')) return;
+      header.insertAdjacentHTML('afterend', '<div class="local-banner" role="note"><div class="container">' +
+        '<strong>시험 운영 중</strong> 제출한 내용은 이 기기의 브라우저에만 저장되며, 다른 사람에게 보이거나 전달되지 않습니다.' +
+      '</div></div>');
+    };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', showLocalBanner);
+    else showLocalBanner();
+  }
 })();

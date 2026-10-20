@@ -43,6 +43,14 @@
       5, '개념·방법·글쓰기에서 얻은 것, 몰랐던 이유, 다음에 더 읽어 볼 문헌을 적습니다.')
   ];
 
+  // 0. 논문의 핵심 키워드 — 짧은 입력칸 3개
+  window.REVIEW_KEYWORDS = {
+    num: '0',
+    label: '논문의 핵심 키워드',
+    prompt: '이 논문을 대표하는 키워드 3개는 무엇인가?',
+    names: ['keyword1', 'keyword2', 'keyword3']
+  };
+
   // 제출 폼·본문 보기 공통 섹션 (한 덩어리)
   window.REVIEW_SECTIONS = [
     {

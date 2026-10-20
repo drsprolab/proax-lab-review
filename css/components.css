@@ -2,11 +2,24 @@
  * css/style.css 의 토큰(--ink/--muted/--paper/--tint/--line/--accent …)만 사용합니다.
  */
 
+/* ---------- 미리보기 모드 안내 띠 ---------- */
+
+.local-banner { background: var(--tint); border-bottom: 1px solid var(--line); font-size: 13.5px; color: var(--muted); padding-block: 9px; }
+.local-banner strong { color: var(--warn); font-weight: 600; margin-right: 8px; }
+@media print { .local-banner { display: none !important; } }
+
 /* ---------- 대문 ---------- */
 
 .landing { padding-block: 20px 8px; display: grid; gap: 20px; }
 .landing h1 { font-size: clamp(38px, 6.5vw, 58px); line-height: 1.15; }
 .landing .lede { max-width: 60ch; }
+
+.notice {
+  max-width: 60ch; padding: 14px 18px;
+  background: var(--tint); border-left: 3px solid var(--warn); border-radius: 0 8px 8px 0;
+}
+.notice-title { margin: 0 0 6px; font-size: 14px; font-weight: 600; color: var(--warn); letter-spacing: .02em; }
+.notice-list { margin: 0; padding-left: 1.3em; font-size: 15px; line-height: 1.75; color: var(--ink); }
 
 .schedule { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 6px; }
 .sched {
@@ -94,6 +107,27 @@ a.chip-week:hover { border-color: var(--accent); }
   padding: 1px 8px; border-radius: 4px; background: var(--tint); color: var(--muted);
 }
 .inst .cm-thumb { height: 180px; border: 1px solid var(--line); border-radius: 6px; }
+.inst-who { font-size: 16px; font-weight: 600; color: var(--accent); line-height: 1.3; }
+
+/* ---------- 주차 묶음 (마감 지나면 접힘) ---------- */
+
+.weeks { display: grid; gap: 12px; }
+.weeks .entries, .weeks .cm-grid { margin-top: 12px; }
+.wk-head {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px;
+  margin: 0; font-size: 16px; font-weight: 600; color: var(--ink);
+}
+.wk-head small { font-family: var(--f-mono); font-size: 12px; font-weight: 400; color: var(--muted); }
+.wk-note { font-size: 12.5px; font-weight: 400; color: var(--muted); }
+.wk-open { margin-bottom: 8px; }
+.wk-fold { border: 1px solid var(--line); border-radius: var(--radius); background: var(--tint); }
+.wk-fold > summary { padding: 14px 18px; cursor: pointer; list-style: none; }
+.wk-fold > summary::-webkit-details-marker { display: none; }
+.wk-fold > summary::before { content: '▸'; color: var(--muted); margin-right: 2px; transition: transform .16s ease; }
+.wk-fold[open] > summary::before { transform: rotate(90deg); }
+.wk-fold[open] > summary { border-bottom: 1px solid var(--line); }
+.wk-fold > .entries, .wk-fold > .cm-grid { margin: 0; padding: 16px; }
+@media (prefers-reduced-motion: reduce) { .wk-fold > summary::before { transition: none; } }
 
 /* 확인 화면에서는 페이지 제목을 숨겨 문서 한 장만 보이게 합니다 */
 .is-confirm main > .page-head { display: none; }
@@ -225,6 +259,21 @@ html[data-theme="dark"] .doc { box-shadow: 0 10px 30px rgba(0, 0, 0, .35); }
   font-family: var(--f-display); font-size: clamp(24px, 3.2vw, 32px);
   font-weight: 600; line-height: 1.35; letter-spacing: -.01em; margin: 0 0 14px;
 }
+/* 0. 핵심 키워드 — 입력칸 3개 / 보고서·본문의 칩 */
+.kw-inputs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 680px) { .kw-inputs { grid-template-columns: 1fr; } }
+.kw-inputs input { width: 100%; }
+.kw-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.kw-chips span {
+  font-size: 14px; font-weight: 500; padding: 5px 14px; border-radius: 999px;
+  background: var(--accent-soft); color: var(--accent);
+}
+.kw-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-bottom: 16px; }
+.kw-label { font-family: var(--f-mono); font-size: 12px; letter-spacing: .06em; color: var(--muted); }
+
+.rpt-who { display: flex; align-items: baseline; gap: 10px; margin: 0 0 16px; }
+.rpt-who span { font-family: var(--f-mono); font-size: 12px; letter-spacing: .06em; color: var(--muted); }
+.rpt-who strong { font-size: 20px; font-weight: 600; color: var(--accent); }
 .rpt-lede { margin: 0 0 16px; font-size: 15.5px; line-height: 1.8; color: var(--muted); }
 .rpt-tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; }
 .rpt-tags span {
@@ -232,14 +281,6 @@ html[data-theme="dark"] .doc { box-shadow: 0 10px 30px rgba(0, 0, 0, .35); }
   background: var(--tint); color: var(--ink);
 }
 .rpt-meta { margin: 0; font-family: var(--f-mono); font-size: 11.5px; color: var(--muted); }
-
-.rpt-summary {
-  margin: 0 0 18px; padding: 20px 24px;
-  background: var(--accent-soft); border-left: 4px solid var(--accent); border-radius: 0 6px 6px 0;
-  break-inside: avoid;
-}
-.rpt-summary-label { margin: 0 0 8px; font-size: 14px; font-weight: 600; color: var(--ink); }
-.rpt-summary .doc-text { font-size: 16px; line-height: 1.9; }
 
 .rpt-source {
   margin: 0 0 8px; padding: 18px 22px;
@@ -288,7 +329,6 @@ html[data-theme="dark"] .doc { box-shadow: 0 10px 30px rgba(0, 0, 0, .35); }
   .doc { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .rpt-title { font-size: 26px; }
   .doc-text { font-size: 11pt; line-height: 1.85; }
-  .rpt-summary .doc-text { font-size: 11.5pt; }
   .rpt-h { font-size: 15pt; }
   .rpt-sec { margin-top: 22px; padding-top: 18px; }
   .rpt-figure img { max-height: 150mm; }

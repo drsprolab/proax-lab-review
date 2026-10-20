@@ -10,6 +10,7 @@
   var APA = window.APA;
   var MD = window.MD;
   var ITEMS = window.REVIEW_ITEMS;
+  var KW = window.REVIEW_KEYWORDS;
   var FIELD_NAMES = window.REVIEW_FIELD_NAMES;
   var DRAFT_KEY = 'proax-review-draft-v1';
 
@@ -66,9 +67,17 @@
         '<div class="csec-head">' +
           '<span class="csec-num">03</span>' +
           '<h2 id="bodyTitle">Critical Review</h2>' +
-          '<span class="csec-sub">1번부터 8번까지 직접 타이핑합니다. 붙여넣기는 지원하지 않습니다.</span>' +
+          '<span class="csec-sub">0번부터 8번까지 직접 타이핑합니다. 붙여넣기는 지원하지 않습니다.</span>' +
         '</div>' +
         '<div class="csec-body">' +
+          '<div class="f-field">' +
+            '<span class="f-label"><span class="f-num">' + KW.num + '.</span> ' + PL.esc(KW.label) + '</span>' +
+            '<p class="f-prompt">' + PL.esc(KW.prompt) + '</p>' +
+            '<div class="kw-inputs">' + KW.names.map(function (n, i) {
+              return '<input id="ta-' + n + '" type="text" maxlength="40" data-typing-only ' +
+                'placeholder="키워드 ' + (i + 1) + '" aria-label="핵심 키워드 ' + (i + 1) + '" />';
+            }).join('') + '</div>' +
+          '</div>' +
           ITEMS.map(function (f) {
             return '<div class="f-field">' +
               '<span class="f-label"><span class="f-num">' + f.num + '.</span> ' + PL.esc(f.label) + '</span>' +
@@ -103,7 +112,7 @@
       doi: val('f-doi'),
       pub_year: yearRaw ? Number(yearRaw) : ''
     };
-    FIELD_NAMES.forEach(function (n) {
+    FIELD_NAMES.concat(KW.names).forEach(function (n) {
       var node = ta(n);
       data[n] = node ? node.value.trim() : '';
     });
@@ -119,7 +128,7 @@
       node.value = (v === null || v === undefined) ? '' : v;
     });
     if (el('f-apa') && data.apa_citation) el('f-apa').value = data.apa_citation;
-    FIELD_NAMES.forEach(function (n) {
+    FIELD_NAMES.concat(KW.names).forEach(function (n) {
       var node = ta(n);
       if (node) node.value = data[n] || '';
     });
@@ -230,16 +239,9 @@
       eyebrow: [PL.fmtDate(d.submitted_at), 'Critical Review', PL.weekShort(d.week_key)],
       title: d.paper_title || '(제목 없음)',
       tags: [d.journal_name, d.pub_year ? String(d.pub_year) : ''],
-      meta: ['리뷰 ' + (d.student || '—'), written + '/8개 항목', '약 ' + PL.readMinutes(allText) + '분']
+      who: d.student,
+      meta: [written + '/8개 항목', '약 ' + PL.readMinutes(allText) + '분']
     });
-
-    // Executive Summary = 5. 핵심 메세지
-    if (String(d.r5_message || '').trim()) {
-      html += '<aside class="rpt-summary">' +
-        '<p class="rpt-summary-label">Executive Summary · 핵심 메세지</p>' +
-        PL.rptBody(d.r5_message) +
-      '</aside>';
-    }
 
     html += '<section class="rpt-source">' +
       '<p class="rpt-source-label">REVIEWED PAPER</p>' +
@@ -248,6 +250,8 @@
         (link && d.apa_citation.indexOf(d.doi) === -1 ? ' <a href="' + PL.esc(link) + '" target="_blank" rel="noopener">' + PL.esc(link) + '</a>' : '') +
       '</p>' +
     '</section>';
+
+    html += PL.rptSection(KW.num, KW.label, PL.rptKeywords(KW.names.map(function (n) { return d[n]; })));
 
     html += ITEMS.map(function (f) {
       return PL.rptSection(f.num, f.label, PL.rptBody(d[f.name]));
@@ -360,6 +364,10 @@
     els.confirmBtn.addEventListener('click', goConfirm);
     document.getElementById('backBtn').addEventListener('click', goForm);
     document.getElementById('backBtn2').addEventListener('click', goForm);
+    document.getElementById('draftPdfBtn').addEventListener('click', function () {
+      var d = collect();
+      PL.printPdf('CriticalReview_' + d.student + '_' + d.week_key);
+    });
     document.getElementById('submitBtn').addEventListener('click', submit);
     document.getElementById('submitBtn2').addEventListener('click', submit);
 
