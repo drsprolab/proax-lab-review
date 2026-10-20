@@ -290,6 +290,54 @@
       ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
   }
 
+  /* ---------- 제출 마감 (한국 시간) ----------
+   * 마감은 그 주차(월~일)의 요일·시각으로 정합니다.
+   *  - 논문 리뷰: 일요일 10:00 / Concept map: 수요일 10:00
+   * 제출 시간은 학생이 고르는 제출일이 아니라 서버가 기록한 시각(updated_at → created_at)을 씁니다.
+   */
+  var DEADLINE = {
+    reviews: { afterMonday: 6, hour: 10 },
+    concept_maps: { afterMonday: 2, hour: 10 }
+  };
+  var KST = 9 * 3600000;
+  var DOW = ['일', '월', '화', '수', '목', '금', '토'];
+
+  // 마감 시각(ms). 주차 키가 없으면 null
+  function deadlineMs(weekKeyValue, kind) {
+    var rule = DEADLINE[kind];
+    var mon = weekKeyToDate(weekKeyValue);
+    if (!rule || !mon) return null;
+    return Date.UTC(mon.getFullYear(), mon.getMonth(), mon.getDate() + rule.afterMonday, rule.hour) - KST;
+  }
+
+  // 마지막으로 제출(또는 갱신)한 서버 시각(ms)
+  function submittedMs(row) {
+    var n = Number(row && (row.updated_at || row.created_at));
+    return n > 0 ? n : null;
+  }
+
+  // 한국 시간 'M.D(요일) HH:MM'
+  function fmtKst(ms) {
+    if (!ms) return '';
+    var d = new Date(ms + KST);
+    return (d.getUTCMonth() + 1) + '.' + d.getUTCDate() + '(' + DOW[d.getUTCDay()] + ') ' +
+      pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes());
+  }
+
+  // 제출 시간 표시. 마감이 지난 뒤 제출했으면 빨간 불이 깜빡입니다.
+  function submitTime(row, kind) {
+    var at = submittedMs(row);
+    if (!at) return '';
+    var due = deadlineMs(row.week_key, kind);
+    var late = due !== null && at > due;
+    var tip = (due ? '마감 ' + fmtKst(due) : '') +
+      (row.created_at && Number(row.created_at) !== at ? ' · 처음 제출 ' + fmtKst(Number(row.created_at)) : '');
+    return '<span class="sub-time' + (late ? ' is-late' : '') + '"' + (tip ? ' title="' + esc(tip.replace(/^ · /, '')) + '"' : '') + '>' +
+      (late ? '<span class="late-dot" aria-hidden="true"></span>' : '') +
+      '제출 ' + esc(fmtKst(at)) + (late ? ' · <b>마감 후 제출</b>' : '') +
+    '</span>';
+  }
+
   function today() {
     var d = new Date();
     return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
@@ -447,6 +495,10 @@
     snippet: snippet,
     fmtDate: fmtDate,
     fmtDateTime: fmtDateTime,
+    fmtKst: fmtKst,
+    deadlineMs: deadlineMs,
+    submittedMs: submittedMs,
+    submitTime: submitTime,
     today: today,
     weekKey: weekKey,
     weekLabel: weekLabel,

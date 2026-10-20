@@ -47,7 +47,8 @@
       '<time datetime="' + PL.esc(row.submitted_at || '') + '">' + PL.esc(PL.fmtDate(row.submitted_at)) + '</time> · ' +
       PL.esc(PL.weekShort(row.week_key)) + ' · CONCEPT MAP</div>';
     html += '<div class="entry-by" style="gap:9px">' + avatar(row.student || '') +
-      '<span style="font-size:15px;font-weight:600">' + PL.esc(row.student || '(제출자 없음)') + '</span></div>';
+      '<span style="font-size:15px;font-weight:600">' + PL.esc(row.student || '(제출자 없음)') + '</span>' +
+      PL.submitTime(row, 'concept_maps') + '</div>';
     html += '<h1>' + PL.esc(PL.weekLabel(row.week_key)) + ' Concept map</h1>';
     html += '</header>';
 
@@ -85,6 +86,7 @@
         '<div><dt>제출자</dt><dd>' + PL.esc(row.student || '–') + '</dd></div>' +
         '<div><dt>주차</dt><dd>' + PL.esc(PL.weekLabel(row.week_key)) + '</dd></div>' +
         '<div><dt>제출일</dt><dd>' + PL.esc(PL.fmtDate(row.submitted_at) || '–') + '</dd></div>' +
+        '<div><dt>제출 시간</dt><dd>' + (PL.submitTime(row, 'concept_maps') || '–') + '</dd></div>' +
         '<div><dt>도식 파일</dt><dd>' + PL.esc(row.cm_diagram_name || '–') + '</dd></div>' +
       '</dl>' +
     '</section>';

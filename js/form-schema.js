@@ -51,6 +51,14 @@
     names: ['keyword1', 'keyword2', 'keyword3']
   };
 
+  // 9. 추가 도식 (옵션) — 그림 파일 1개, 드래그 앤 드롭. 구글 드라이브에 올리고 참조만 저장
+  window.REVIEW_EXTRA = {
+    num: '9',
+    label: '추가 도식',
+    prompt: '리뷰를 이해하는 데 도움이 되는 그림이나 도식이 있으면 올려 주세요. 없으면 비워 두어도 됩니다.',
+    fields: { ref: 'r9_diagram_ref', name: 'r9_diagram_name', type: 'r9_diagram_type', size: 'r9_diagram_size' }
+  };
+
   // 제출 폼·본문 보기 공통 섹션 (한 덩어리)
   window.REVIEW_SECTIONS = [
     {

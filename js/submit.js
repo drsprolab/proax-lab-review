@@ -11,6 +11,8 @@
   var MD = window.MD;
   var ITEMS = window.REVIEW_ITEMS;
   var KW = window.REVIEW_KEYWORDS;
+  var EX = window.REVIEW_EXTRA;
+  var MAX_BYTES = 10 * 1024 * 1024; // 10MB
   var FIELD_NAMES = window.REVIEW_FIELD_NAMES;
   var DRAFT_KEY = 'proax-review-draft-v1';
 
@@ -18,7 +20,10 @@
     reviews: [],
     week: PL.weekKey(),
     dirty: false,
-    step: 'form' // 'form' | 'confirm'
+    step: 'form', // 'form' | 'confirm'
+    file: null,        // 새로 올릴 추가 도식
+    fileUrl: '',       // 미리보기 주소 (새 파일 blob: 또는 기존 제출본의 이미지)
+    keepRef: null      // 갱신할 때 그대로 둘 기존 도식 { ref, name, type, size }
   };
 
   var els = {
@@ -91,10 +96,124 @@
               '</div>' +
             '</div>';
           }).join('') +
+          '<div class="f-field">' +
+            '<span class="f-label"><span class="f-num">' + EX.num + '.</span> ' + PL.esc(EX.label) +
+              ' <span class="f-opt">(옵션)</span></span>' +
+            '<p class="f-prompt">' + PL.esc(EX.prompt) + '</p>' +
+            '<div class="dropzone" id="dropzone" role="button" tabindex="0" ' +
+              'aria-label="추가 도식 이미지 올리기 — 클릭하거나 파일을 끌어다 놓으세요">' +
+              '<span class="dz-icon" aria-hidden="true">🖼️</span>' +
+              '<span class="dz-title">그림 파일을 끌어다 놓거나 클릭하세요</span>' +
+              '<span class="dz-sub">PNG · JPG · WEBP · GIF · 최대 10MB</span>' +
+            '</div>' +
+            '<input id="fileInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden />' +
+            '<div id="previewWrap" hidden>' +
+              '<img id="preview" class="dz-preview" alt="추가 도식 미리보기" />' +
+              '<div class="dz-file"><span id="fileName"></span>' +
+                '<button class="btn btn-sm btn-danger" type="button" id="removeFile">지우기</button></div>' +
+            '</div>' +
+            '<p class="dz-hint" id="dzHint">선택 사항입니다. 그림은 제출할 때 함께 업로드됩니다.</p>' +
+          '</div>' +
         '</div>' +
       '</section>';
 
     if (window.TYPING) window.TYPING.applyAll();
+  }
+
+  /* ---------- 2-1. 9. 추가 도식 (옵션) ---------- */
+
+  function human(bytes) {
+    if (!bytes) return '';
+    if (bytes < 1024 * 1024) return Math.max(1, Math.round(bytes / 1024)) + ' KB';
+    return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+  }
+
+  function setHint(text, isError) {
+    var h = el('dzHint');
+    h.textContent = text;
+    h.className = 'dz-hint' + (isError ? ' is-err' : '');
+  }
+
+  function showPreview(src, label) {
+    el('preview').src = src;
+    el('fileName').textContent = label;
+    el('previewWrap').hidden = false;
+    el('dropzone').hidden = true;
+    state.fileUrl = src;
+  }
+
+  function clearFile() {
+    if (state.keepRef) state.dropOld = true; // 기존 제출본의 도식을 지움
+    if (state.file && state.fileUrl) URL.revokeObjectURL(state.fileUrl);
+    state.file = null;
+    state.keepRef = null;
+    state.fileUrl = '';
+    el('preview').removeAttribute('src');
+    el('previewWrap').hidden = true;
+    el('dropzone').hidden = false;
+    el('dropzone').classList.remove('is-over');
+    el('fileInput').value = '';
+    setHint('선택 사항입니다. 그림은 제출할 때 함께 업로드됩니다.', false);
+    state.dirty = true;
+  }
+
+  function acceptFile(file) {
+    if (!file) return;
+    if (!/^image\/(png|jpeg|webp|gif)$/.test(file.type)) {
+      setHint('그림 파일만 올릴 수 있습니다(PNG · JPG · WEBP · GIF).', true);
+      PL.toast('그림 파일만 올릴 수 있습니다.', 'err');
+      return;
+    }
+    if (file.size > MAX_BYTES) {
+      setHint('파일이 너무 큽니다(' + human(file.size) + '). 10MB 이하로 올려 주세요.', true);
+      PL.toast('파일이 너무 큽니다. 10MB 이하로 올려 주세요.', 'err');
+      return;
+    }
+    if (state.file && state.fileUrl) URL.revokeObjectURL(state.fileUrl);
+    state.file = file;
+    state.keepRef = null;
+    state.dirty = true;
+    showPreview(URL.createObjectURL(file), file.name + ' · ' + human(file.size));
+    setHint('제출 버튼을 누르면 이 그림이 함께 업로드됩니다. (임시 저장에는 그림이 포함되지 않습니다)', false);
+  }
+
+  // 기존 제출본을 불러올 때: 이미 올린 도식을 그대로 보여 주고 유지
+  function applyExisting(row) {
+    var f = EX.fields;
+    if (!row || !row[f.ref]) return;
+    state.keepRef = { ref: row[f.ref], name: row[f.name] || '', type: row[f.type] || '', size: row[f.size] || 0 };
+    showPreview(PL.fileUrl('reviews', row[f.ref]), (row[f.name] || '기존 도식') + ' · 이미 제출됨');
+  }
+
+  function bindDropzone() {
+    var dz = el('dropzone');
+    var input = el('fileInput');
+    dz.addEventListener('click', function () { input.click(); });
+    dz.addEventListener('keydown', function (ev) {
+      if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); input.click(); }
+    });
+    input.addEventListener('change', function () { acceptFile(input.files && input.files[0]); });
+    ['dragenter', 'dragover'].forEach(function (type) {
+      dz.addEventListener(type, function (ev) { ev.preventDefault(); ev.stopPropagation(); dz.classList.add('is-over'); });
+    });
+    ['dragleave', 'dragend'].forEach(function (type) {
+      dz.addEventListener(type, function (ev) { ev.preventDefault(); dz.classList.remove('is-over'); });
+    });
+    dz.addEventListener('drop', function (ev) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      dz.classList.remove('is-over');
+      var files = ev.dataTransfer && ev.dataTransfer.files;
+      acceptFile(files && files[0]);
+    });
+    el('removeFile').addEventListener('click', clearFile);
+    // 드롭존 밖에 떨어뜨려도 브라우저가 파일을 열지 않게
+    ['dragover', 'drop'].forEach(function (type) {
+      window.addEventListener(type, function (ev) {
+        if (ev.target === dz || dz.contains(ev.target)) return;
+        ev.preventDefault();
+      });
+    });
   }
 
   /* ---------- 3. 수집 ---------- */
@@ -257,6 +376,12 @@
       return PL.rptSection(f.num, f.label, PL.rptBody(d[f.name]));
     }).join('');
 
+    if (state.fileUrl) {
+      html += PL.rptSection(EX.num, EX.label,
+        '<figure class="rpt-figure"><img src="' + PL.esc(state.fileUrl) + '" alt="추가 도식" />' +
+        '<figcaption><b>그림 1.</b> ' + PL.esc(d.student || '') + '의 추가 도식</figcaption></figure>');
+    }
+
     els.sheet.innerHTML = html;
 
     var missing = ITEMS.filter(function (f) { return !String(d[f.name] || '').trim(); });
@@ -313,9 +438,29 @@
     });
 
     var api = PL.table('reviews');
-    var req = ex ? api.update(ex.id, data) : api.create(data);
+    var f = EX.fields;
+    var chain = state.file ? PL.upload('reviews', state.file) : Promise.resolve(null);
 
-    req
+    chain
+      .then(function (up) {
+        if (up) {
+          data[f.ref] = up.reference;
+          data[f.name] = up.original_filename || state.file.name;
+          data[f.type] = up.content_type || state.file.type;
+          data[f.size] = up.size || state.file.size;
+        } else if (state.keepRef) {
+          data[f.ref] = state.keepRef.ref;
+          data[f.name] = state.keepRef.name;
+          data[f.type] = state.keepRef.type;
+          data[f.size] = state.keepRef.size;
+        } else if (ex && ex[f.ref] && !state.dropOld) {
+          // 같은 주차에 다시 제출하면서 그림을 새로 올리지 않았으면 이전 그림을 그대로 둡니다
+          [f.ref, f.name, f.type, f.size].forEach(function (k) { data[k] = ex[k] || ''; });
+        } else {
+          data[f.ref] = ''; data[f.name] = ''; data[f.type] = ''; data[f.size] = '';
+        }
+        return ex ? api.update(ex.id, data) : api.create(data);
+      })
       .then(function (saved) {
         clearDraft();
         state.dirty = false;
@@ -394,6 +539,7 @@
     renderComposer();
     el('f-date').value = PL.today();
     bind();
+    bindDropzone();
     if (window.TYPING) window.TYPING.applyAll();
 
     PL.table('reviews').list()
@@ -409,6 +555,7 @@
               el('f-week').value = hit.week_key;
             }
             apply(hit);
+            applyExisting(hit);
             PL.toast('기존 제출본을 불러왔습니다.', 'ok');
           }
         } else {

@@ -27,6 +27,12 @@
 - 대문 목록: 카드 맨 위에 **제출자 이름**(`.inst-who`). 주차 탭은 없앰 → **주차 묶음**("2026년 43주차")
   - 마감이 지나면 그 주는 접힌 묶음(`details.wk-fold`)으로 숨김: 논문 리뷰는 다음 주 **화요일 10:00**, Concept map은 그 주 **금요일 10:00** (`FOLD_AFTER`, `FOLD_HOUR` in `js/app.js`)
   - 주차는 월~일(ISO 주). 화요일 "오전"은 10시로 맞춤
+- **제출 마감과 늦은 제출 표시** (2026-10-20): 논문 리뷰 = 그 주 **일요일 10:00**, Concept map = 그 주 **수요일 10:00** (한국 시간, `DEADLINE` in `js/api.js`)
+  - 제출 시간은 학생이 고르는 제출일이 아니라 서버 시각(`updated_at` → `created_at`)으로 판정. 같은 주차를 다시 내면 마지막 제출 시각 기준
+  - `PL.submitTime(row, kind)`: 카드(제출자 이름 아래)·본문 상단·제출 정보 표에 "제출 M.D(요일) HH:MM". 늦으면 빨간 점이 깜빡이고 "마감 후 제출"
+  - 10시는 오전으로 해석함(교수님 확인 전). 오후 10시라면 `DEADLINE`의 `hour`만 22로 바꾸면 됨
+- **논문 리뷰 9. 추가 도식 (옵션)** (2026-10-20): 8번 아래 그림 파일 1개 드래그 앤 드롭. `REVIEW_EXTRA` in `js/form-schema.js`, 필드 `r9_diagram_ref/name/type/size`. 드라이브 'PRO-AX Lab Review 도식' 폴더에 저장. 확인 화면·PDF·본문에는 올린 경우에만 9번으로 표시. 같은 주차 재제출 때 새 그림이 없으면 이전 그림 유지
+- **헤더 로고** (2026-10-20): 'P' 글자 대신 연구실 로고 심볼(PRO / AX) `img/lab-mark.png`, 다크 테마는 `img/lab-mark-dark.png`
 
 ## 현재 상태
 - 저장소는 구글 시트(`BACKEND = 'google'`). `GAS_URL`을 비우면 예전 미리보기 모드(localStorage)로 돌아감

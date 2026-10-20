@@ -120,6 +120,7 @@
       var sum = summaryOf(r);
       return '<a class="inst" href="review.html?id=' + encodeURIComponent(r.id) + '">' +
         who(r.student) +
+        PL.submitTime(r, 'reviews') +
         tags([r.journal_name, r.pub_year]) +
         '<h3>' + PL.esc(r.paper_title || '(제목 없음)') + '</h3>' +
         (sum ? '<p>' + PL.esc(sum) + '</p>' : '') +
@@ -152,6 +153,7 @@
     renderWeeks(els.mapEntries, list, 'maps', 'cm-grid', function (m) {
       return '<a class="inst" href="concept-detail.html?id=' + encodeURIComponent(m.id) + '">' +
         who(m.student) +
+        PL.submitTime(m, 'concept_maps') +
         '<h3>' + PL.esc(PL.snippet(m.cm_theory || 'Concept map', 60)) + '</h3>' +
         thumb(m) +
         (m.cm_explanation ? '<p>' + PL.esc(PL.snippet(m.cm_explanation, 200)) + '</p>' : '') +

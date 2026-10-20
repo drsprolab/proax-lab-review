@@ -56,6 +56,7 @@
       PL.esc(PL.weekShort(row.week_key)) + ' · PAPER REVIEW</div>';
     html += '<div class="entry-by" style="gap:9px">' + avatar(row.student || '') +
       '<span style="font-size:15px;font-weight:600">' + PL.esc(row.student || '(제출자 없음)') + '</span>' +
+      PL.submitTime(row, 'reviews') +
     '</div>';
     html += '<h1>' + PL.esc(row.paper_title || '(제목 없음)') + '</h1>';
     if (row.apa_citation) {
@@ -94,6 +95,18 @@
       '</li>';
     }).join('') + '</ol>';
 
+    /* 9. 추가 도식 (옵션) — 올린 경우에만 */
+    var EX = window.REVIEW_EXTRA;
+    if (EX && row[EX.fields.ref]) {
+      html += '<section class="body-item" id="item-' + EX.num + '">' +
+        '<div class="body-item-head"><span class="body-num">' + EX.num + '</span><h2>' + PL.esc(EX.label) + '</h2></div>' +
+        '<figure class="cm-figure"><img src="' + PL.esc(PL.fileUrl('reviews', row[EX.fields.ref])) + '" alt="추가 도식 — ' +
+          PL.esc(row.student || '') + '" loading="lazy" />' +
+          (row[EX.fields.name] ? '<figcaption>' + PL.esc(row[EX.fields.name]) + '</figcaption>' : '') +
+        '</figure>' +
+      '</section>';
+    }
+
     /* 서지 정보 */
     html += '<section class="dsection">' +
       '<div class="dsection-head"><span class="dsection-num">BIBLIO</span><h2>서지 정보</h2></div>' +
@@ -101,6 +114,7 @@
         '<div><dt>제출자</dt><dd>' + PL.esc(row.student || '–') + '</dd></div>' +
         '<div><dt>주차</dt><dd>' + PL.esc(PL.weekLabel(row.week_key)) + '</dd></div>' +
         '<div><dt>제출일</dt><dd>' + PL.esc(PL.fmtDate(row.submitted_at) || '–') + '</dd></div>' +
+        '<div><dt>제출 시간</dt><dd>' + (PL.submitTime(row, 'reviews') || '–') + '</dd></div>' +
         '<div><dt>저자</dt><dd>' + PL.esc(row.paper_authors || '–') + '</dd></div>' +
         '<div><dt>저널</dt><dd>' + PL.esc(row.journal_name || '–') + '</dd></div>' +
         '<div><dt>발행 연도</dt><dd>' + PL.esc(row.pub_year || '–') + '</dd></div>' +

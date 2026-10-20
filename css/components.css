@@ -109,6 +109,15 @@ a.chip-week:hover { border-color: var(--accent); }
 .inst .cm-thumb { height: 180px; border: 1px solid var(--line); border-radius: 6px; }
 .inst-who { font-size: 16px; font-weight: 600; color: var(--accent); line-height: 1.3; }
 
+/* 제출 시간 — 마감(일 10:00 · 수 10:00) 후 제출이면 빨간 불이 깜빡임 */
+.sub-time { display: inline-flex; align-items: center; gap: 6px; font-family: var(--f-mono, monospace); font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.sub-time.is-late { color: var(--danger); }
+.sub-time.is-late b { font-weight: 600; }
+.late-dot { flex: none; width: 9px; height: 9px; border-radius: 50%; background: var(--danger); box-shadow: 0 0 0 0 rgba(192,57,43,.55); animation: late-blink 1.1s ease-in-out infinite; }
+@keyframes late-blink { 0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(192,57,43,.55); } 50% { opacity: .25; box-shadow: 0 0 0 5px rgba(192,57,43,0); } }
+@media (prefers-reduced-motion: reduce) { .late-dot { animation: none; } }
+@media print { .late-dot { animation: none; } }
+
 /* ---------- 주차 묶음 (마감 지나면 접힘) ---------- */
 
 .weeks { display: grid; gap: 12px; }
@@ -173,6 +182,7 @@ a.chip-week:hover { border-color: var(--accent); }
 
 .f-field { display: grid; gap: 6px; }
 .f-label { font-size: 14.5px; font-weight: 600; color: var(--ink); }
+.f-opt { font-weight: 500; font-size: 13px; color: var(--muted); }
 .f-num { font-family: var(--f-mono); color: var(--accent); margin-right: 2px; }
 .f-prompt {
   font-size: 13.5px; color: var(--ink); background: var(--accent-soft);

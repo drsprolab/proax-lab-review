@@ -89,10 +89,12 @@ main.container { padding-block: 40px 72px; }
 .site-header { border-bottom: 1px solid var(--line); background: var(--paper); position: sticky; top: 0; z-index: 20; }
 .header-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 64px; padding-block: 6px; flex-wrap: wrap; }
 .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); line-height: 1.2; }
-.brand-mark {
-  width: 40px; height: 40px; flex: none; display: grid; place-items: center;
-  border: 1px solid var(--line); border-radius: var(--radius); background: var(--tint); font-size: 18px;
-}
+/* 연구실 로고 심볼 (PRO / AX). 테마에 따라 밝은·어두운 그림을 바꿔 보여 줌 */
+.brand-mark { flex: none; display: block; line-height: 0; }
+.brand-mark img { display: block; height: 38px; width: auto; }
+.brand-mark .mark-dark { display: none; }
+[data-theme="dark"] .brand-mark .mark-light { display: none; }
+[data-theme="dark"] .brand-mark .mark-dark { display: block; }
 .brand-text { display: grid; }
 .brand-name { font-family: var(--f-display); font-weight: 600; font-size: 19px; }
 .brand-sub { font-family: var(--f-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
