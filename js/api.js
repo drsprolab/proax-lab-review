@@ -5,79 +5,49 @@
 (function () {
   'use strict';
 
-  var PAGE_SIZE = 100;
   var TABLE_NAMES = { reviews: 'reviews', students: 'students' };
 
-  // 'local' = 이 브라우저(localStorage)에만 저장하는 미리보기 모드.
-  // 구글 연결 전까지 화면 확인용이며, 다른 사람에게는 보이지 않습니다.
-  var BACKEND = 'local';
+  // 구글 Apps Script 웹앱 주소 (apps-script/Code.gs 를 배포하고 받은 …/exec 주소).
+  // 비어 있으면 'local' = 이 브라우저(localStorage)에만 저장하는 미리보기 모드.
+  var GAS_URL = '';
+  var BACKEND = GAS_URL ? 'google' : 'local';
 
-  function ensureOk(res, action) {
-    if (!res.ok) throw new Error(action + ' 실패 (' + res.status + ')');
-    return res;
+  /* ---------- 구글 시트 저장 (Apps Script) ---------- */
+
+  // 응답 형식: { ok: true, data } / { ok: false, error }
+  function unwrap(res) {
+    if (!res.ok) throw new Error('서버 응답 오류 (' + res.status + ')');
+    return res.json().then(function (json) {
+      if (!json || !json.ok) throw new Error((json && json.error) || '요청을 처리하지 못했습니다.');
+      return json.data;
+    });
+  }
+
+  function gasGet(params) {
+    var q = Object.keys(params).map(function (k) {
+      return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+    }).join('&');
+    return fetch(GAS_URL + '?' + q).then(unwrap);
+  }
+
+  // text/plain 으로 보내야 브라우저가 사전 확인(CORS preflight) 없이 Apps Script 로 보낼 수 있습니다.
+  function gasPost(body) {
+    return fetch(GAS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(body)
+    }).then(unwrap);
   }
 
   function makeApi(table) {
-    var base = 'tables/' + table;
-
-    // 전체 레코드 (페이지네이션 순회)
-    function list() {
-      var rows = [];
-      var total = Infinity;
-      var page = 1;
-
-      function step() {
-        if (page > 60 || rows.length >= total) return Promise.resolve(rows);
-        return fetch(base + '?page=' + page + '&limit=' + PAGE_SIZE)
-          .then(function (res) { return ensureOk(res, '목록 불러오기'); })
-          .then(function (res) { return res.json(); })
-          .then(function (json) {
-            var batch = (json && json.data) || [];
-            total = json && typeof json.total === 'number' ? json.total : rows.length + batch.length;
-            rows = rows.concat(batch);
-            if (batch.length < PAGE_SIZE) return rows;
-            page += 1;
-            return step();
-          });
-      }
-      return step();
-    }
-
-    function get(id) {
-      return fetch(base + '/' + encodeURIComponent(id))
-        .then(function (res) {
-          if (res.status === 404) return null;
-          return ensureOk(res, '불러오기');
-        })
-        .then(function (res) { return res ? res.json() : null; });
-    }
-
-    function create(data) {
-      return fetch(base, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      })
-        .then(function (res) { return ensureOk(res, '저장'); })
-        .then(function (res) { return res.json(); });
-    }
-
-    function update(id, data) {
-      return fetch(base + '/' + encodeURIComponent(id), {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      })
-        .then(function (res) { return ensureOk(res, '수정'); })
-        .then(function (res) { return res.json(); });
-    }
-
-    function remove(id) {
-      return fetch(base + '/' + encodeURIComponent(id), { method: 'DELETE' })
-        .then(function (res) { return ensureOk(res, '삭제'); });
-    }
-
-    return { name: table, list: list, get: get, create: create, update: update, remove: remove };
+    return {
+      name: table,
+      list: function () { return gasGet({ action: 'list', table: table }); },
+      get: function (id) { return gasGet({ action: 'get', table: table, id: id }); },
+      create: function (data) { return gasPost({ action: 'create', table: table, data: data }); },
+      update: function (id, data) { return gasPost({ action: 'update', table: table, id: id, data: data }); },
+      remove: function () { return Promise.reject(new Error('삭제는 구글 시트에서 직접 해 주세요.')); }
+    };
   }
 
   /* ---------- 미리보기 모드: localStorage 저장 ---------- */
@@ -155,49 +125,31 @@
 
   // 반환값: { reference, original_filename, content_type, size }
   function upload(collection, file) {
-    if (BACKEND === 'local') {
-      return new Promise(function (resolve, reject) {
-        var reader = new FileReader();
-        reader.onload = function () {
-          resolve({ reference: reader.result, original_filename: file.name, content_type: file.type, size: file.size });
-        };
-        reader.onerror = function () { reject(new Error('이미지를 읽지 못했습니다.')); };
-        reader.readAsDataURL(file);
-      });
-    }
-
-    var headers = {
-      'Content-Type': file.type || 'application/octet-stream',
-      'X-File-Name': encodeURIComponent(file.name)
-    };
-    if (window.crypto && typeof window.crypto.randomUUID === 'function') {
-      headers['Idempotency-Key'] = window.crypto.randomUUID();
-    }
-
-    return fetch('/files/' + collection, {
-      method: 'POST',
-      headers: headers,
-      body: file
-    }).then(function (res) {
-      if (res.status === 413) throw new Error('파일이 너무 큽니다. 더 작은 이미지를 올려 주세요.');
-      if (res.status === 401) throw new Error('로그인이 필요합니다. 로그인 후 다시 시도해 주세요.');
-      if (res.status === 404 || res.status === 503) {
-        throw new Error('지금은 파일 업로드를 사용할 수 없습니다. (배포 후 사용 가능)');
+    return new Promise(function (resolve, reject) {
+      var reader = new FileReader();
+      reader.onload = function () { resolve(reader.result); };
+      reader.onerror = function () { reject(new Error('이미지를 읽지 못했습니다.')); };
+      reader.readAsDataURL(file);
+    }).then(function (dataUrl) {
+      if (BACKEND === 'local') {
+        return { reference: dataUrl, original_filename: file.name, content_type: file.type, size: file.size };
       }
-      if (!res.ok) throw new Error('도식 업로드에 실패했습니다 (' + res.status + ')');
-      return res.json();
-    }).then(function (json) {
-      if (!json || !json.reference) throw new Error('업로드 응답에 파일 참조가 없습니다.');
-      return json;
+      // 구글 드라이브에 저장 → reference 는 드라이브 파일 id
+      return gasPost({
+        action: 'upload',
+        name: file.name,
+        type: file.type,
+        data: String(dataUrl).split(',')[1] || ''
+      });
     });
   }
 
-  // 업로드 응답의 reference 를 그대로 쓰고, id 만 온 경우에만 경로를 보정합니다.
+  // reference → 이미지 주소. 미리보기 모드는 data: 주소, 구글 연결 후에는 드라이브 파일 id
   function fileUrl(collection, ref) {
     var s = String(ref || '').trim();
     if (!s) return '';
-    if (s.charAt(0) === '/' || /^(https?:|data:)/i.test(s)) return s;
-    return '/files/' + collection + '/' + encodeURIComponent(s);
+    if (/^(https?:|data:)/i.test(s)) return s;
+    return 'https://drive.google.com/thumbnail?id=' + encodeURIComponent(s) + '&sz=w2000';
   }
 
   /* ---------- 보고서형 문서 조각 (확인 화면 = PDF) ---------- */

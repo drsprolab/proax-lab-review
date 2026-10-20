@@ -2,8 +2,8 @@
  * 흐름: 기본 정보 → ① 이론과 개념(직접 타이핑) → ② 도식 이미지(드래그 앤 드롭 업로드)
  *       → ③ Conceptual Map 설명(직접 타이핑) → [확인하기] 문서형 1장 → [제출하기]
  *
- * 도식은 먼저 /files/concept-maps 로 업로드하고, 성공적으로 돌려받은 reference 만
- * concept_maps 행에 저장합니다. (Base64·data URL 을 DB 에 넣지 않습니다.)
+ * 도식은 먼저 구글 드라이브에 올리고(PL.upload), 돌려받은 파일 id(reference)만
+ * concept_maps 행에 저장합니다. (미리보기 모드에서는 이 브라우저에 data URL 로 저장)
  */
 (function () {
   'use strict';

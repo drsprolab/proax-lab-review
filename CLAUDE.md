@@ -35,9 +35,12 @@
 
 ## 다음 할 일
 1. 확인 화면/PDF 보고서 형식에 대한 사용자 피드백 반영
-2. **구글 연결**: Google Apps Script 웹앱 + 구글 시트(행 저장) + 구글 드라이브(도식 이미지, "링크 있는 사람 보기")
-   - `js/api.js`의 `makeApi`(목록/조회/생성/수정)와 `upload`, `fileUrl`만 Apps Script 호출로 바꾸면 됨. 나머지 화면 코드는 `PL.table(...)`, `PL.upload(...)`만 씀
-   - 사용자(교수님) 계정에서 시트 생성 → 스크립트 붙여넣기 → 웹앱 배포 → URL 받기 순으로 단계별 안내 필요
+2. **구글 연결** — 코드는 준비 완료, 교수님의 웹앱 주소 대기 중
+   - `apps-script/Code.gs`: 시트 탭(reviews, concept_maps)·열 자동 생성, 글자는 `'` 접두로 저장(수식·날짜 변환 방지), 도식은 드라이브 'PRO-AX Lab Review 도식' 폴더 + 링크 공유
+   - `js/api.js`의 `GAS_URL`에 …/exec 주소를 넣으면 `BACKEND = 'google'`로 바뀌고 안내 띠가 사라짐. GET=목록/조회, POST(text/plain)=생성/수정/업로드
+   - 도식 이미지 주소: `https://drive.google.com/thumbnail?id=<파일id>&sz=w2000`
+   - 가짜 시트 위에서 Code.gs를 돌려 두 학생 제출 → 다른 브라우저 열람, 갱신, 이미지까지 확인함. 실제 구글 배포 후 다시 확인 필요
+   - 교수님 안내 순서: 새 구글 시트 → 확장 프로그램 → Apps Script → Code.gs 붙여넣기 → setup 실행(권한 승인) → 배포 → 새 배포 → 웹 앱(실행: 나, 액세스: 모든 사용자) → …/exec 주소 받기
 3. **GitHub Pages 배포** 후 학생들에게 링크 공유
 
 ## 로컬에서 미리보기
