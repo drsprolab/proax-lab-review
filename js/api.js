@@ -9,7 +9,7 @@
 
   // 구글 Apps Script 웹앱 주소 (apps-script/Code.gs 를 배포하고 받은 …/exec 주소).
   // 비어 있으면 'local' = 이 브라우저(localStorage)에만 저장하는 미리보기 모드.
-  var GAS_URL = '';
+  var GAS_URL = 'https://script.google.com/macros/s/AKfycbx5fCuGE2LXr9yD2HA8ozIWjGhPEv27tq35L97IpZ147RaqXdbiLf48-wE06K9fZsaKjA/exec';
   var BACKEND = GAS_URL ? 'google' : 'local';
 
   /* ---------- 구글 시트 저장 (Apps Script) ---------- */

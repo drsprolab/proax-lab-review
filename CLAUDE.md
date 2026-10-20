@@ -28,14 +28,15 @@
   - 주차는 월~일(ISO 주). 화요일 "오전"은 10시로 맞춤
 
 ## 현재 상태
-- 저장소는 `js/api.js`의 `BACKEND = 'local'` — **미리보기 모드**: 제출 내용이 그 브라우저 localStorage에만 저장됨. 다른 사람에게 안 보임
+- 저장소는 구글 시트(`BACKEND = 'google'`). `GAS_URL`을 비우면 예전 미리보기 모드(localStorage)로 돌아감
+- Apps Script 코드를 고치면 교수님이 편집기에 다시 붙여넣고 **배포 → 배포 관리 → 수정(연필) → 버전: 새 버전 → 배포**해야 반영됨(주소는 그대로)
   - 미리보기 모드에서는 모든 화면 헤더 아래 "시험 운영 중" 안내 띠(`.local-banner`, `js/api.js` 끝)가 뜸. 구글 연결 후 자동으로 사라짐
 - 2026-10-20: 학생 화면 시험용으로 미리보기 모드 그대로 GitHub Pages 배포 (교수님 결정)
 - 젠스파크 원래 저장소(`tables/…`, `/files/…`)는 젠스파크 호스팅 전용이라 GitHub Pages에서 동작하지 않음
 
 ## 다음 할 일
 1. 확인 화면/PDF 보고서 형식에 대한 사용자 피드백 반영
-2. **구글 연결** — 코드는 준비 완료, 교수님의 웹앱 주소 대기 중
+2. **구글 연결** — 2026-10-20 연결 완료 (교수님 개인 Gmail의 시트 + Apps Script 웹앱, `GAS_URL`에 주소 넣음)
    - `apps-script/Code.gs`: 시트 탭(reviews, concept_maps)·열 자동 생성, 글자는 `'` 접두로 저장(수식·날짜 변환 방지), 도식은 드라이브 'PRO-AX Lab Review 도식' 폴더 + 링크 공유
    - `js/api.js`의 `GAS_URL`에 …/exec 주소를 넣으면 `BACKEND = 'google'`로 바뀌고 안내 띠가 사라짐. GET=목록/조회, POST(text/plain)=생성/수정/업로드
    - 도식 이미지 주소: `https://drive.google.com/thumbnail?id=<파일id>&sz=w2000`
