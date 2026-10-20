@@ -9,10 +9,8 @@
  *   "링크가 있는 모든 사용자 보기"로 공유되어 사이트에 표시됩니다.
  */
 
-// LO_Review(학습조직 수업, hrdpro.hanyang.ac.kr/lo-review/)도 같은 시트를 쓰되 탭을 따로 둔다: lo_reviews, lo_concept_maps
-var TABLES = ['reviews', 'concept_maps', 'lo_reviews', 'lo_concept_maps'];
+var TABLES = ['reviews', 'concept_maps'];
 var FOLDER_NAME = 'PRO-AX Lab Review 도식';
-var LO_FOLDER_NAME = 'LO_Review 도식';
 var MAX_UPLOAD = 10 * 1024 * 1024; // 10MB
 var BASE_COLUMNS = ['id', 'created_at', 'updated_at'];
 
@@ -180,7 +178,7 @@ function uploadImage(req) {
   if (bytes.length > MAX_UPLOAD) throw new Error('이미지는 10MB 이하만 올릴 수 있습니다.');
 
   var name = String(req.name || 'concept-map').slice(0, 120);
-  var file = folder(req.folder === 'lo' ? LO_FOLDER_NAME : FOLDER_NAME).createFile(Utilities.newBlob(bytes, type, name));
+  var file = folder().createFile(Utilities.newBlob(bytes, type, name));
   try {
     file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
   } catch (err) {
@@ -189,10 +187,9 @@ function uploadImage(req) {
   return { reference: file.getId(), original_filename: name, content_type: type, size: bytes.length };
 }
 
-function folder(name) {
-  name = name || FOLDER_NAME;
-  var it = DriveApp.getFoldersByName(name);
-  return it.hasNext() ? it.next() : DriveApp.createFolder(name);
+function folder() {
+  var it = DriveApp.getFoldersByName(FOLDER_NAME);
+  return it.hasNext() ? it.next() : DriveApp.createFolder(FOLDER_NAME);
 }
 
 /* ---------- 설치 확인 (편집기에서 한 번 실행) ---------- */
@@ -200,7 +197,6 @@ function folder(name) {
 // 편집기에서 setup 을 실행하면 권한을 승인하고 탭·폴더를 미리 만듭니다.
 function setup() {
   TABLES.forEach(sheetFor);
-  folder(FOLDER_NAME);
-  folder(LO_FOLDER_NAME);
+  folder();
   Logger.log('준비 완료: ' + SpreadsheetApp.getActiveSpreadsheet().getUrl());
 }
