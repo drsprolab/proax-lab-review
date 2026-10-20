@@ -136,6 +136,8 @@ a.chip-week:hover { border-color: var(--accent); }
 .wk-fold[open] > summary::before { transform: rotate(90deg); }
 .wk-fold[open] > summary { border-bottom: 1px solid var(--line); }
 .wk-fold > .entries, .wk-fold > .cm-grid { margin: 0; padding: 16px; }
+.wk-sample { border-left: 3px solid var(--accent); }
+.wk-sample > summary { color: var(--accent); }
 @media (prefers-reduced-motion: reduce) { .wk-fold > summary::before { transition: none; } }
 
 /* 확인 화면에서는 페이지 제목을 숨겨 문서 한 장만 보이게 합니다 */
