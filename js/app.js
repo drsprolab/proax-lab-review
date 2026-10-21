@@ -160,7 +160,7 @@
         '<h3 class="review-title">' + PL.esc(r.paper_title || '(제목 없음)') +
           (best ? '<span class="best-week-badge">BEST of Week</span>' : '') + '</h3>' +
         (sum ? '<p>' + PL.esc(sum) + '</p>' : '') +
-      '</a><button class="best-week-toggle' + (best ? ' is-selected' : '') + '" type="button" data-best-id="' +
+      '</a><button class="best-week-toggle' + (best ? ' is-selected' : '') + '" type="button" data-best-kind="reviews" data-best-id="' +
         PL.esc(r.id) + '" aria-pressed="' + best + '" aria-label="' + (best ? 'BEST of Week 선택 해제' : 'BEST of Week 선택') + '">' +
         (best ? '✓ BEST 선택됨' : 'BEST of Week 체크') + '</button></div>';
     });
@@ -189,13 +189,17 @@
     }
 
     renderWeeks(els.mapEntries, list, 'maps', 'cm-grid', function (m) {
-      return '<a class="inst" href="concept-detail.html?id=' + encodeURIComponent(m.id) + '">' +
+      var best = m.best_of_week === true || m.best_of_week === 'true';
+      return '<div class="review-card-wrap"><a class="inst" href="concept-detail.html?id=' + encodeURIComponent(m.id) + '">' +
         who(m.student) +
         PL.submitTime(m, 'concept_maps') +
-        '<h3>' + PL.esc(PL.snippet(m.cm_theory || 'Concept map', 60)) + '</h3>' +
+        '<h3 class="review-title">' + PL.esc(PL.snippet(m.cm_theory || 'Concept map', 60)) +
+          (best ? '<span class="best-week-badge">BEST of Week</span>' : '') + '</h3>' +
         thumb(m) +
         (m.cm_explanation ? '<p>' + PL.esc(PL.snippet(m.cm_explanation, 200)) + '</p>' : '') +
-      '</a>';
+      '</a><button class="best-week-toggle' + (best ? ' is-selected' : '') + '" type="button" data-best-kind="maps" data-best-id="' +
+        PL.esc(m.id) + '" aria-pressed="' + best + '" aria-label="' + (best ? 'BEST of Week 선택 해제' : 'BEST of Week 선택') + '">' +
+        (best ? '✓ BEST 선택됨' : 'BEST of Week 체크') + '</button></div>';
     });
   }
 
@@ -249,24 +253,29 @@
       });
   }
 
-  els.reviewEntries.addEventListener('click', function (event) {
-    var button = event.target.closest('[data-best-id]');
-    if (!button) return;
-    event.preventDefault();
-    event.stopPropagation();
-    var id = button.getAttribute('data-best-id');
-    var row = state.reviews.filter(function (r) { return String(r.id) === String(id); })[0];
-    if (!row || button.disabled) return;
-    var next = !(row.best_of_week === true || row.best_of_week === 'true');
-    button.disabled = true;
-    PL.table('reviews').update(id, { best_of_week: next }).then(function (updated) {
-      Object.assign(row, updated || { best_of_week: next });
-      renderReviews();
-    }).catch(function (err) {
-      button.disabled = false;
-      PL.toast('BEST 표시를 저장하지 못했습니다: ' + (err.message || '네트워크 오류'), 'error');
+  function attachBestToggle(container, kind, rows) {
+    container.addEventListener('click', function (event) {
+      var button = event.target.closest('[data-best-id]');
+      if (!button) return;
+      event.preventDefault();
+      event.stopPropagation();
+      var id = button.getAttribute('data-best-id');
+      var row = rows.filter(function (r) { return String(r.id) === String(id); })[0];
+      if (!row || button.disabled) return;
+      var next = !(row.best_of_week === true || row.best_of_week === 'true');
+      button.disabled = true;
+      PL.table(kind === 'maps' ? 'concept_maps' : 'reviews').update(id, { best_of_week: next }).then(function (updated) {
+        Object.assign(row, updated || { best_of_week: next });
+        if (kind === 'maps') renderMaps(); else renderReviews();
+      }).catch(function (err) {
+        button.disabled = false;
+        PL.toast('BEST 표시를 저장하지 못했습니다: ' + (err.message || '네트워크 오류'), 'error');
+      });
     });
-  });
+  }
+
+  attachBestToggle(els.reviewEntries, 'reviews', state.reviews);
+  attachBestToggle(els.mapEntries, 'maps', state.maps);
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', boot);
