@@ -153,16 +153,15 @@
     renderWeeks(els.reviewEntries, list, 'reviews', 'entries', function (r) {
       var sum = summaryOf(r);
       var best = r.best_of_week === true || r.best_of_week === 'true';
-      return '<div class="review-card-wrap"><a class="inst" href="review.html?id=' + encodeURIComponent(r.id) + '">' +
-        who(r.student) +
+      return '<div class="review-card-wrap' + (best ? ' is-best' : '') + '"><div class="best-card-head">' +
+        who(r.student) + '<label class="best-checkbox" aria-label="BEST of Week 표시"><input type="checkbox" data-best-kind="reviews" data-best-id="' +
+        PL.esc(r.id) + '"' + (best ? ' checked' : '') + ' /></label></div><a class="inst" href="review.html?id=' + encodeURIComponent(r.id) + '">' +
         PL.submitTime(r, 'reviews') +
         tags([r.journal_name, r.pub_year]) +
         '<h3 class="review-title">' + PL.esc(r.paper_title || '(제목 없음)') +
           (best ? '<span class="best-week-badge">BEST of Week</span>' : '') + '</h3>' +
         (sum ? '<p>' + PL.esc(sum) + '</p>' : '') +
-      '</a><button class="best-week-toggle' + (best ? ' is-selected' : '') + '" type="button" data-best-kind="reviews" data-best-id="' +
-        PL.esc(r.id) + '" aria-pressed="' + best + '" aria-label="' + (best ? 'BEST of Week 선택 해제' : 'BEST of Week 선택') + '">' +
-        (best ? '✓ BEST 선택됨' : 'BEST of Week 체크') + '</button></div>';
+      '</a></div>';
     });
   }
 
@@ -190,16 +189,15 @@
 
     renderWeeks(els.mapEntries, list, 'maps', 'cm-grid', function (m) {
       var best = m.best_of_week === true || m.best_of_week === 'true';
-      return '<div class="review-card-wrap"><a class="inst" href="concept-detail.html?id=' + encodeURIComponent(m.id) + '">' +
-        who(m.student) +
+      return '<div class="review-card-wrap' + (best ? ' is-best' : '') + '"><div class="best-card-head">' +
+        who(m.student) + '<label class="best-checkbox" aria-label="BEST of Week 표시"><input type="checkbox" data-best-kind="maps" data-best-id="' +
+        PL.esc(m.id) + '"' + (best ? ' checked' : '') + ' /></label></div><a class="inst" href="concept-detail.html?id=' + encodeURIComponent(m.id) + '">' +
         PL.submitTime(m, 'concept_maps') +
         '<h3 class="review-title">' + PL.esc(PL.snippet(m.cm_theory || 'Concept map', 60)) +
           (best ? '<span class="best-week-badge">BEST of Week</span>' : '') + '</h3>' +
         thumb(m) +
         (m.cm_explanation ? '<p>' + PL.esc(PL.snippet(m.cm_explanation, 200)) + '</p>' : '') +
-      '</a><button class="best-week-toggle' + (best ? ' is-selected' : '') + '" type="button" data-best-kind="maps" data-best-id="' +
-        PL.esc(m.id) + '" aria-pressed="' + best + '" aria-label="' + (best ? 'BEST of Week 선택 해제' : 'BEST of Week 선택') + '">' +
-        (best ? '✓ BEST 선택됨' : 'BEST of Week 체크') + '</button></div>';
+      '</a></div>';
     });
   }
 
@@ -254,21 +252,20 @@
   }
 
   function attachBestToggle(container, kind, rows) {
-    container.addEventListener('click', function (event) {
+    container.addEventListener('change', function (event) {
       var button = event.target.closest('[data-best-id]');
       if (!button) return;
-      event.preventDefault();
-      event.stopPropagation();
       var id = button.getAttribute('data-best-id');
       var row = rows.filter(function (r) { return String(r.id) === String(id); })[0];
       if (!row || button.disabled) return;
-      var next = !(row.best_of_week === true || row.best_of_week === 'true');
+      var next = button.checked;
       button.disabled = true;
       PL.table(kind === 'maps' ? 'concept_maps' : 'reviews').update(id, { best_of_week: next }).then(function (updated) {
         Object.assign(row, updated || { best_of_week: next });
         if (kind === 'maps') renderMaps(); else renderReviews();
       }).catch(function (err) {
         button.disabled = false;
+        button.checked = !next;
         PL.toast('BEST 표시를 저장하지 못했습니다: ' + (err.message || '네트워크 오류'), 'error');
       });
     });
