@@ -12,12 +12,75 @@
   var GAS_URL = 'https://script.google.com/macros/s/AKfycbx5fCuGE2LXr9yD2HA8ozIWjGhPEv27tq35L97IpZ147RaqXdbiLf48-wE06K9fZsaKjA/exec';
   var BACKEND = GAS_URL ? 'google' : 'local';
 
+
+  /* ---------- 비밀번호 ----------
+   * 처음 들어올 때 비밀번호를 묻고, 맞으면 이 브라우저에 기억합니다.
+   * 실제 확인은 Apps Script(스크립트 속성 PASSWORD)에서 하므로, 비밀번호 없이는 목록·본문·제출이 모두 막힙니다.
+   */
+  var PASS_KEY = 'proax-review-pass';
+  function getPass() { try { return localStorage.getItem(PASS_KEY) || ''; } catch (e) { return ''; } }
+  function setPass(v) { try { if (v) localStorage.setItem(PASS_KEY, v); else localStorage.removeItem(PASS_KEY); } catch (e) {} }
+  var NEVER = new Promise(function () {});
+
+  function showGate(message) {
+    if (document.getElementById('pw-gate')) {
+      if (message) document.getElementById('pw-msg').textContent = message;
+      return;
+    }
+    var style = document.createElement('style');
+    style.textContent =
+      '#pw-gate{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;padding:24px;background:var(--paper,#fff)}' +
+      '#pw-gate form{width:min(100%,380px);display:grid;gap:12px}' +
+      '#pw-gate .pw-mark{font-family:var(--f-mono,monospace);font-size:12px;letter-spacing:.12em;color:var(--muted,#5a6573);text-transform:uppercase}' +
+      '#pw-gate h1{margin:0;font-size:26px;line-height:1.3;color:var(--ink,#16202b)}' +
+      '#pw-gate p{margin:0;color:var(--muted,#5a6573);font-size:14.5px}' +
+      '#pw-gate input{font:inherit;font-size:16px;padding:11px 14px;border:1px solid var(--line,#dde2e8);border-radius:10px;background:var(--paper,#fff);color:var(--ink,#16202b)}' +
+      '#pw-gate input:focus{outline:2px solid var(--accent,#1d4f86);outline-offset:1px}' +
+      '#pw-gate button{font:inherit;font-weight:600;font-size:15px;padding:11px 14px;border:0;border-radius:10px;background:var(--accent,#1d4f86);color:#fff;cursor:pointer}' +
+      '#pw-gate button[disabled]{opacity:.6;cursor:wait}' +
+      '#pw-msg{min-height:1.4em;color:#c0392b;font-size:13.5px}';
+    document.head.appendChild(style);
+    var gate = document.createElement('div');
+    gate.id = 'pw-gate';
+    gate.innerHTML =
+      '<form autocomplete="on"><div class="pw-mark">PRO-AX Lab Review</div>' +
+      '<h1>비밀번호를 입력해 주세요</h1>' +
+      '<p>PRO-AX Lab 구성원만 열람·제출할 수 있습니다. 한 번 입력하면 이 브라우저에서는 다시 묻지 않습니다.</p>' +
+      '<input id="pw-input" type="password" name="password" autocomplete="current-password" placeholder="비밀번호" aria-label="비밀번호" required>' +
+      '<button type="submit">들어가기</button><div id="pw-msg" role="alert"></div></form>';
+    document.body.appendChild(gate);
+    var form = gate.querySelector('form'), input = gate.querySelector('#pw-input'), btn = gate.querySelector('button');
+    if (message) gate.querySelector('#pw-msg').textContent = message;
+    input.focus();
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var v = input.value.trim(); if (!v) return;
+      btn.disabled = true; gate.querySelector('#pw-msg').textContent = '';
+      fetch(GAS_URL + '?action=auth&key=' + encodeURIComponent(v)).then(function (r) { return r.json(); })
+        .then(function (j) {
+          // 아직 비밀번호 기능이 없는 예전 Apps Script면 그대로 통과(새 버전 배포 후에는 실제 비밀번호로 다시 확인됨)
+          if ((j && j.ok) || (j && /알 수 없는 요청/.test(String(j.error)))) { setPass(v); location.reload(); return; }
+          throw new Error((j && j.error) || '');
+        })
+        .catch(function (err) {
+          btn.disabled = false;
+          gate.querySelector('#pw-msg').textContent = /AUTH/.test(String(err && err.message)) ? '비밀번호가 맞지 않습니다. 다시 입력해 주세요.' : '확인하지 못했습니다. 인터넷 연결을 확인하고 다시 시도해 주세요.';
+          input.select();
+        });
+    });
+  }
+  function needGate() {
+    var show = function () { showGate(); };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', show); else show();
+  }
+
   /* ---------- 구글 시트 저장 (Apps Script) ---------- */
 
   // 응답 형식: { ok: true, data } / { ok: false, error }
   function unwrap(res) {
     if (!res.ok) throw new Error('서버 응답 오류 (' + res.status + ')');
     return res.json().then(function (json) {
+      if (json && !json.ok && /^AUTH/.test(String(json.error))) { setPass(''); needGate(); return NEVER; }
       if (!json || !json.ok) throw new Error((json && json.error) || '요청을 처리하지 못했습니다.');
       return json.data;
     });
@@ -27,11 +90,14 @@
     var q = Object.keys(params).map(function (k) {
       return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
     }).join('&');
-    return fetch(GAS_URL + '?' + q).then(unwrap);
+    if (!getPass()) { needGate(); return NEVER; }
+    return fetch(GAS_URL + '?' + q + '&key=' + encodeURIComponent(getPass())).then(unwrap);
   }
 
   // text/plain 으로 보내야 브라우저가 사전 확인(CORS preflight) 없이 Apps Script 로 보낼 수 있습니다.
   function gasPost(body) {
+    if (!getPass()) { needGate(); return NEVER; }
+    body.key = getPass();
     return fetch(GAS_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },

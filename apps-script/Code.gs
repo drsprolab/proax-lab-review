@@ -43,7 +43,9 @@ function json(obj) {
 }
 
 function route(req) {
+  if (req.action !== 'ping') checkPassword(req);
   switch (req.action) {
+    case 'auth': return 'ok';
     case 'list': return listRows(sheetFor(req.table));
     case 'get': return getRow(sheetFor(req.table), req.id);
     case 'create': return withLock(function () { return createRow(sheetFor(req.table), req.data || {}); });
@@ -52,6 +54,16 @@ function route(req) {
     case 'ping': return 'ok';
   }
   throw new Error('알 수 없는 요청입니다: ' + req.action);
+}
+
+/* ---------- 비밀번호 ----------
+ * 비밀번호는 코드가 아니라 [프로젝트 설정 → 스크립트 속성]의 PASSWORD 에 둡니다.
+ * PASSWORD 가 없으면 비밀번호 없이 열려 있습니다(설정하는 순간부터 잠김).
+ */
+function checkPassword(req) {
+  var pw = PropertiesService.getScriptProperties().getProperty('PASSWORD');
+  if (!pw) return;
+  if (String(req.key || '') !== String(pw)) throw new Error('AUTH: 비밀번호가 맞지 않습니다.');
 }
 
 function withLock(fn) {
