@@ -152,13 +152,17 @@
 
     renderWeeks(els.reviewEntries, list, 'reviews', 'entries', function (r) {
       var sum = summaryOf(r);
-      return '<a class="inst" href="review.html?id=' + encodeURIComponent(r.id) + '">' +
+      var best = r.best_of_week === true || r.best_of_week === 'true';
+      return '<div class="review-card-wrap"><a class="inst" href="review.html?id=' + encodeURIComponent(r.id) + '">' +
         who(r.student) +
         PL.submitTime(r, 'reviews') +
         tags([r.journal_name, r.pub_year]) +
-        '<h3>' + PL.esc(r.paper_title || '(제목 없음)') + '</h3>' +
+        '<h3 class="review-title">' + PL.esc(r.paper_title || '(제목 없음)') +
+          (best ? '<span class="best-week-badge">BEST of Week</span>' : '') + '</h3>' +
         (sum ? '<p>' + PL.esc(sum) + '</p>' : '') +
-      '</a>';
+      '</a><button class="best-week-toggle' + (best ? ' is-selected' : '') + '" type="button" data-best-id="' +
+        PL.esc(r.id) + '" aria-pressed="' + best + '" aria-label="' + (best ? 'BEST of Week 선택 해제' : 'BEST of Week 선택') + '">' +
+        (best ? '✓ BEST 선택됨' : 'BEST of Week 체크') + '</button></div>';
     });
   }
 
@@ -244,6 +248,25 @@
           PL.esc(err.message || '네트워크 오류') + '</div>';
       });
   }
+
+  els.reviewEntries.addEventListener('click', function (event) {
+    var button = event.target.closest('[data-best-id]');
+    if (!button) return;
+    event.preventDefault();
+    event.stopPropagation();
+    var id = button.getAttribute('data-best-id');
+    var row = state.reviews.filter(function (r) { return String(r.id) === String(id); })[0];
+    if (!row || button.disabled) return;
+    var next = !(row.best_of_week === true || row.best_of_week === 'true');
+    button.disabled = true;
+    PL.table('reviews').update(id, { best_of_week: next }).then(function (updated) {
+      Object.assign(row, updated || { best_of_week: next });
+      renderReviews();
+    }).catch(function (err) {
+      button.disabled = false;
+      PL.toast('BEST 표시를 저장하지 못했습니다: ' + (err.message || '네트워크 오류'), 'error');
+    });
+  });
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', boot);

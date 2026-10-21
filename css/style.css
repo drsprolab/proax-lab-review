@@ -195,6 +195,22 @@ input[type="search"], input[type="text"], input[type="url"], input[type="number"
   background: var(--paper); position: relative;
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
+.review-card-wrap { position: relative; min-width: 0; }
+.review-card-wrap > .inst { height: 100%; }
+.review-title { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.best-week-badge {
+  display: inline-block; color: #d71920; font-size: 12px; font-weight: 700;
+  letter-spacing: .035em; white-space: nowrap; animation: best-week-blink 1s steps(2, start) infinite;
+}
+.best-week-toggle {
+  margin: 8px 0 0 4px; padding: 4px 9px; border: 1px solid var(--line);
+  border-radius: 6px; background: var(--paper); color: var(--muted); font: inherit;
+  font-size: 12px; cursor: pointer;
+}
+.best-week-toggle:hover, .best-week-toggle.is-selected { border-color: #d71920; color: #d71920; }
+.best-week-toggle:disabled { opacity: .55; cursor: wait; }
+@keyframes best-week-blink { to { visibility: hidden; } }
+@media (prefers-reduced-motion: reduce) { .best-week-badge { animation: none; } }
 @media (hover: hover) {
   .inst:hover { transform: scale(1.02); z-index: 3; border-color: var(--accent); box-shadow: var(--shadow); }
 }
