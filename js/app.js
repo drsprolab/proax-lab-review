@@ -38,6 +38,25 @@
     return '전체 ' + (list.length - n) + '편' + (n ? ' · Sample ' + n + '편' : '');
   }
 
+  function isBest(row) {
+    return String(row.best_of_week).toLowerCase() === 'true';
+  }
+
+  function bestControl(row, kind) {
+    var best = isBest(row);
+    return '<label class="best-checkbox" title="Best Review of Week 선정 / 해제">' +
+      '<input type="checkbox" data-best-kind="' + kind + '" data-best-id="' + PL.esc(row.id) +
+      '" aria-label="' + PL.esc((row.student || '이름 없음') + ' · Best Review of Week') +
+      '"' + (best ? ' checked' : '') + ' />' +
+      '<span class="best-week-badge"' + (best ? '' : ' hidden') + '>Best Review of Week</span></label>';
+  }
+
+  function showBestSelection(input, best) {
+    input.checked = best;
+    input.parentElement.querySelector('.best-week-badge').hidden = !best;
+    input.closest('.review-card-wrap').classList.toggle('is-best', best);
+  }
+
   function summaryOf(row) {
     return PL.snippet(row.r5_message || row.r2_problem || row.r1_reason || '', 200);
   }
@@ -152,14 +171,13 @@
 
     renderWeeks(els.reviewEntries, list, 'reviews', 'entries', function (r) {
       var sum = summaryOf(r);
-      var best = r.best_of_week === true || r.best_of_week === 'true';
+      var best = isBest(r);
       return '<div class="review-card-wrap' + (best ? ' is-best' : '') + '"><div class="best-card-head">' +
-        who(r.student) + '<label class="best-checkbox" aria-label="BEST of Week 표시"><input type="checkbox" data-best-kind="reviews" data-best-id="' +
-        PL.esc(r.id) + '"' + (best ? ' checked' : '') + ' /></label></div><a class="inst" href="review.html?id=' + encodeURIComponent(r.id) + '">' +
+        who(r.student) + bestControl(r, 'reviews') + '</div><a class="inst" href="review.html?id=' + encodeURIComponent(r.id) + '">' +
         PL.submitTime(r, 'reviews') +
         tags([r.journal_name, r.pub_year]) +
         '<h3 class="review-title">' + PL.esc(r.paper_title || '(제목 없음)') +
-          (best ? '<span class="best-week-badge">BEST of Week</span>' : '') + '</h3>' +
+          '</h3>' +
         (sum ? '<p>' + PL.esc(sum) + '</p>' : '') +
       '</a></div>';
     });
@@ -188,13 +206,12 @@
     }
 
     renderWeeks(els.mapEntries, list, 'maps', 'cm-grid', function (m) {
-      var best = m.best_of_week === true || m.best_of_week === 'true';
+      var best = isBest(m);
       return '<div class="review-card-wrap' + (best ? ' is-best' : '') + '"><div class="best-card-head">' +
-        who(m.student) + '<label class="best-checkbox" aria-label="BEST of Week 표시"><input type="checkbox" data-best-kind="maps" data-best-id="' +
-        PL.esc(m.id) + '"' + (best ? ' checked' : '') + ' /></label></div><a class="inst" href="concept-detail.html?id=' + encodeURIComponent(m.id) + '">' +
+        who(m.student) + bestControl(m, 'maps') + '</div><a class="inst" href="concept-detail.html?id=' + encodeURIComponent(m.id) + '">' +
         PL.submitTime(m, 'concept_maps') +
         '<h3 class="review-title">' + PL.esc(PL.snippet(m.cm_theory || 'Concept map', 60)) +
-          (best ? '<span class="best-week-badge">BEST of Week</span>' : '') + '</h3>' +
+          '</h3>' +
         thumb(m) +
         (m.cm_explanation ? '<p>' + PL.esc(PL.snippet(m.cm_explanation, 200)) + '</p>' : '') +
       '</a></div>';
@@ -251,28 +268,49 @@
       });
   }
 
-  function attachBestToggle(container, kind, rows) {
+  function attachBestToggle(container, kind) {
+    // 기존 제출 시간 옆의 빨간 점으로도 같은 체크박스를 선택할 수 있습니다.
+    container.addEventListener('click', function (event) {
+      if (!event.target.closest('.late-dot')) return;
+      var card = event.target.closest('.review-card-wrap');
+      var input = card && card.querySelector('[data-best-id]');
+      if (!input) return;
+      event.preventDefault();
+      if (!input.disabled) input.click();
+    });
     container.addEventListener('change', function (event) {
-      var button = event.target.closest('[data-best-id]');
-      if (!button) return;
-      var id = button.getAttribute('data-best-id');
-      var row = rows.filter(function (r) { return String(r.id) === String(id); })[0];
-      if (!row || button.disabled) return;
-      var next = button.checked;
-      button.disabled = true;
-      PL.table(kind === 'maps' ? 'concept_maps' : 'reviews').update(id, { best_of_week: next }).then(function (updated) {
-        Object.assign(row, updated || { best_of_week: next });
-        if (kind === 'maps') renderMaps(); else renderReviews();
+      var input = event.target.closest('[data-best-id]');
+      if (!input || !container.contains(input)) return;
+      var id = input.getAttribute('data-best-id');
+      // 목록 로딩 때 state 배열이 교체되므로 클릭 시점의 최신 목록을 읽습니다.
+      var row = state[kind].filter(function (r) { return String(r.id) === String(id); })[0];
+      if (!row || input.disabled) return;
+      var previous = isBest(row);
+      var next = input.checked;
+      // 체크 즉시 바로 옆에 배지를 표시하고, 저장 실패 시 원래 상태로 복원합니다.
+      showBestSelection(input, next);
+      input.disabled = true;
+      input.setAttribute('aria-busy', 'true');
+      PL.table(kind === 'maps' ? 'concept_maps' : 'reviews').update(id, {
+        best_of_week: next,
+        submitted_time: row.submitted_time || row.updated_at || row.created_at || null
+      }).then(function (updated) {
+        if (!updated || !Object.prototype.hasOwnProperty.call(updated, 'best_of_week') || isBest(updated) !== next) {
+          throw new Error('저장 결과를 확인하지 못했습니다. 다시 시도해 주세요.');
+        }
+        Object.assign(row, updated);
       }).catch(function (err) {
-        button.disabled = false;
-        button.checked = !next;
+        showBestSelection(input, previous);
         PL.toast('BEST 표시를 저장하지 못했습니다: ' + (err.message || '네트워크 오류'), 'error');
+      }).then(function () {
+        input.disabled = false;
+        input.removeAttribute('aria-busy');
       });
     });
   }
 
-  attachBestToggle(els.reviewEntries, 'reviews', state.reviews);
-  attachBestToggle(els.mapEntries, 'maps', state.maps);
+  attachBestToggle(els.reviewEntries, 'reviews');
+  attachBestToggle(els.mapEntries, 'maps');
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', boot);

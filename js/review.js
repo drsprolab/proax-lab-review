@@ -51,6 +51,9 @@
 
     /* 헤더 */
     html += '<header class="page-head">';
+    if (String(row.best_of_week).toLowerCase() === 'true') {
+      html += '<div><span class="best-week-badge">Best Review of Week</span></div>';
+    }
     html += '<div class="eyebrow">' +
       '<time datetime="' + PL.esc(row.submitted_at || '') + '">' + PL.esc(PL.fmtDate(row.submitted_at)) + '</time> · ' +
       PL.esc(PL.weekShort(row.week_key)) + ' · PAPER REVIEW</div>';
