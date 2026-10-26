@@ -68,9 +68,15 @@
   var FOLD_AFTER = { reviews: 10, maps: 3 }; // 주 시작(월요일)부터 목요일까지
   var FOLD_HOUR = 10;
 
-  function foldAt(key, kind) {
-    var d = PL.weekKeyToDate(key);
+  function foldAt(key, kind, rows) {
+    // 강의 주차 번호와 ISO 주차 번호가 다를 수 있으므로 실제 제출일을 우선 사용합니다.
+    var latest = (rows || []).reduce(function (at, row) {
+      var value = Number(row.submitted_time || row.updated_at || row.created_at);
+      return value > at ? value : at;
+    }, 0);
+    var d = latest ? new Date(latest) : PL.weekKeyToDate(key);
     if (!d) return null;
+    d = PL.weekStart(d);
     d.setDate(d.getDate() + FOLD_AFTER[kind]);
     d.setHours(FOLD_HOUR, 0, 0, 0);
     return d;
@@ -81,9 +87,9 @@
     var now = new Date();
     var changeAt = null;
     ['reviews', 'maps'].forEach(function (kind) {
-      state[kind].forEach(function (row) {
-        if (isSample(row, kind)) return;
-        var cutoff = foldAt(row.week_key, kind);
+      var rows = state[kind].filter(function (row) { return !isSample(row, kind); });
+      groupByWeek(rows).forEach(function (group) {
+        var cutoff = foldAt(group.key, kind, group.rows);
         if (cutoff && cutoff > now && (!changeAt || cutoff < changeAt)) changeAt = cutoff;
       });
     });
@@ -159,7 +165,7 @@
     container.innerHTML = sampleGroup(samples, gridClass, card) + groupByWeek(rest).map(function (g) {
       var cards = '<div class="' + gridClass + '">' + g.rows.map(card).join('') + '</div>';
       var count = '<small>' + g.rows.length + '편</small>';
-      var cutoff = foldAt(g.key, kind);
+      var cutoff = foldAt(g.key, kind, g.rows);
       if (cutoff && now < cutoff) {
         return '<section class="wk-open">' +
           '<h3 class="wk-head">' + PL.esc(weekTitle(g.key)) + count +
