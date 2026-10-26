@@ -164,7 +164,8 @@
     container.innerHTML = sampleGroup(samples, gridClass, card) + groups.map(function (g) {
       var cards = '<div class="' + gridClass + '">' + g.rows.map(card).join('') + '</div>';
       var count = '<small>' + g.rows.length + '편</small>';
-      if (g.key === latestKey && now < cutoff) {
+      var isNinthReviewWeek = kind === 'reviews' && /9주차/.test(weekTitle(g.key));
+      if ((g.key === latestKey || isNinthReviewWeek) && now < cutoff) {
         return '<section class="wk-open">' +
           '<h3 class="wk-head">' + PL.esc(weekTitle(g.key)) + count +
             '<span class="wk-note">' + PL.esc(foldNote(cutoff)) + '</span></h3>' +
