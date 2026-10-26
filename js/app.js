@@ -56,20 +56,14 @@
       '<span class="best-week-badge" hidden>Best Review of Week</span></label>';
   }
 
-  function showBestSelection(input, best) {
-    input.checked = best;
-    input.parentElement.querySelector('.best-week-badge').hidden = !best;
-    input.closest('.review-card-wrap').classList.toggle('is-best', best);
-  }
-
   function summaryOf(row) {
     return PL.snippet(row.r5_message || row.r2_problem || row.r1_reason || '', 200);
   }
 
   /* ---------- 주차 묶음 ----------
- * 매주 월요일부터 목요일 오전 10시 전까지 모든 주차 목록을 펼쳐 보입니다.
- * 목요일 오전 10시부터 일요일까지 주차별 접힌 묶음으로 보여 주고, 월요일에 다시 펼칩니다.
- *  - 논문 리뷰와 Concept map 모두 목요일 오전 10시 기준
+   * 매주 월요일부터 목요일 오전 10시 전까지 모든 주차 목록을 펼쳐 보입니다.
+   * 목요일 오전 10시부터 일요일까지 주차별 접힌 묶음으로 보여 주고, 월요일에 다시 펼칩니다.
+   *  - 논문 리뷰와 Concept map 모두 목요일 오전 10시 기준
    */
   var FOLD_AFTER = { reviews: 3, maps: 3 }; // ISO 주 시작(월요일)부터 목요일까지
   var FOLD_HOUR = 10;
