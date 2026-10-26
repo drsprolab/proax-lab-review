@@ -65,19 +65,11 @@
    * 논문 리뷰(일요일 마감)는 다음 주 목요일, Concept map(수요일 마감)은 같은 주 목요일에 접습니다.
    * 새 주차만 마감 시각까지 펼쳐 두고, 이미 묶인 이전 주차는 계속 접힌 상태로 둡니다.
    */
-  var FOLD_AFTER = { reviews: 10, maps: 3 }; // 주 시작(월요일)부터 목요일까지
   var FOLD_HOUR = 10;
 
-  function foldAt(key, kind, rows) {
-    // 강의 주차 번호와 ISO 주차 번호가 다를 수 있으므로 실제 제출일을 우선 사용합니다.
-    var latest = (rows || []).reduce(function (at, row) {
-      var value = Number(row.submitted_time || row.updated_at || row.created_at);
-      return value > at ? value : at;
-    }, 0);
-    var d = latest ? new Date(latest) : PL.weekKeyToDate(key);
-    if (!d) return null;
-    d = PL.weekStart(d);
-    d.setDate(d.getDate() + FOLD_AFTER[kind]);
+  function currentWeekFoldAt(now) {
+    var d = PL.weekStart(now);
+    d.setDate(d.getDate() + 3); // 이번 주 목요일
     d.setHours(FOLD_HOUR, 0, 0, 0);
     return d;
   }
@@ -85,14 +77,18 @@
   var groupingTimer = null;
   function scheduleGroupingRefresh() {
     var now = new Date();
+    var hasRows = state.reviews.some(function (row) { return !isSample(row, 'reviews'); }) ||
+      state.maps.some(function (row) { return !isSample(row, 'maps'); });
     var changeAt = null;
-    ['reviews', 'maps'].forEach(function (kind) {
-      var rows = state[kind].filter(function (row) { return !isSample(row, kind); });
-      groupByWeek(rows).forEach(function (group) {
-        var cutoff = foldAt(group.key, kind, group.rows);
-        if (cutoff && cutoff > now && (!changeAt || cutoff < changeAt)) changeAt = cutoff;
-      });
-    });
+    if (hasRows) {
+      var cutoff = currentWeekFoldAt(now);
+      if (cutoff > now) changeAt = cutoff;
+      else {
+        // 목요일 10시 이후에는 이번 주말까지 접힌 채 두고, 월요일에 다음 주차 목록을 엽니다.
+        changeAt = PL.weekStart(now);
+        changeAt.setDate(changeAt.getDate() + 7);
+      }
+    }
     if (groupingTimer) window.clearTimeout(groupingTimer);
     if (!changeAt) return;
     groupingTimer = window.setTimeout(function () {
@@ -162,11 +158,13 @@
     var now = new Date();
     var samples = list.filter(function (r) { return isSample(r, kind); });
     var rest = list.filter(function (r) { return !isSample(r, kind); });
-    container.innerHTML = sampleGroup(samples, gridClass, card) + groupByWeek(rest).map(function (g) {
+    var groups = groupByWeek(rest);
+    var latestKey = groups.length ? groups[0].key : null;
+    var cutoff = currentWeekFoldAt(now);
+    container.innerHTML = sampleGroup(samples, gridClass, card) + groups.map(function (g) {
       var cards = '<div class="' + gridClass + '">' + g.rows.map(card).join('') + '</div>';
       var count = '<small>' + g.rows.length + '편</small>';
-      var cutoff = foldAt(g.key, kind, g.rows);
-      if (cutoff && now < cutoff) {
+      if (g.key === latestKey && now < cutoff) {
         return '<section class="wk-open">' +
           '<h3 class="wk-head">' + PL.esc(weekTitle(g.key)) + count +
             '<span class="wk-note">' + PL.esc(foldNote(cutoff)) + '</span></h3>' +
