@@ -48,11 +48,12 @@
       return isBest(item) && String(item.week_key || '') === String(row.week_key || '');
     });
     if (!best && weekLocked) return '';
-    return '<label class="best-checkbox" title="' + (best ? 'Best of Week 고정됨' : 'Best Review of Week 선정') + '">' +
+    if (best) return '<span class="best-week-badge">Best Review of Week</span>';
+    return '<label class="best-checkbox" title="Best Review of Week 선정">' +
       '<input type="checkbox" data-best-kind="' + kind + '" data-best-id="' + PL.esc(row.id) +
       '" aria-label="' + PL.esc((row.student || '이름 없음') + ' · Best Review of Week') +
-      '"' + (best ? ' checked disabled' : '') + ' />' +
-      '<span class="best-week-badge"' + (best ? '' : ' hidden') + '>Best Review of Week</span></label>';
+      '" />' +
+      '<span class="best-week-badge" hidden>Best Review of Week</span></label>';
   }
 
   function showBestSelection(input, best) {
@@ -66,8 +67,9 @@
   }
 
   /* ---------- 주차 묶음 ----------
-   * 한 주(월~일) 단위로 묶습니다. 마감이 지나면 그 주는 접힌 묶음이 됩니다.
-   *  - 논문 리뷰와 Concept map 모두 목요일 오전 10시
+ * 매주 월요일부터 목요일 오전 10시 전까지 모든 주차 목록을 펼쳐 보입니다.
+ * 목요일 오전 10시부터 일요일까지 주차별 접힌 묶음으로 보여 주고, 월요일에 다시 펼칩니다.
+ *  - 논문 리뷰와 Concept map 모두 목요일 오전 10시 기준
    */
   var FOLD_AFTER = { reviews: 3, maps: 3 }; // ISO 주 시작(월요일)부터 목요일까지
   var FOLD_HOUR = 10;
@@ -78,6 +80,26 @@
     d.setDate(d.getDate() + FOLD_AFTER[kind]);
     d.setHours(FOLD_HOUR, 0, 0, 0);
     return d;
+  }
+
+  function nextGroupingChange(now) {
+    var cutoff = foldAt(PL.weekKey(now), 'reviews');
+    if (!cutoff) return null;
+    if (now < cutoff) return cutoff;
+    var monday = PL.weekStart(now);
+    monday.setDate(monday.getDate() + 7);
+    return monday;
+  }
+
+  function scheduleGroupingRefresh() {
+    var now = new Date();
+    var changeAt = nextGroupingChange(now);
+    if (!changeAt) return;
+    window.setTimeout(function () {
+      renderReviews();
+      renderMaps();
+      scheduleGroupingRefresh();
+    }, Math.max(0, changeAt.getTime() - now.getTime() + 100));
   }
 
   function weekTitle(key) {
@@ -127,9 +149,9 @@
     return SAMPLE_IDS[kind].indexOf(row.id) !== -1;
   }
 
-  function sampleGroup(rows, gridClass, card) {
+  function sampleGroup(rows, gridClass, card, open) {
     if (!rows.length) return '';
-    return '<details class="wk-fold wk-sample">' +
+    return '<details class="wk-fold wk-sample"' + (open ? ' open' : '') + '>' +
       '<summary class="wk-head">Sample<small>' + rows.length + '편</small>' +
         '<span class="wk-note">작성 예시</span></summary>' +
       '<div class="' + gridClass + '">' + rows.map(card).join('') + '</div>' +
@@ -138,16 +160,17 @@
 
   function renderWeeks(container, list, kind, gridClass, card) {
     var now = new Date();
+    var nextFold = foldAt(PL.weekKey(now), kind);
+    var grouped = !nextFold || now >= nextFold;
     var samples = list.filter(function (r) { return isSample(r, kind); });
     var rest = list.filter(function (r) { return !isSample(r, kind); });
-    container.innerHTML = sampleGroup(samples, gridClass, card) + groupByWeek(rest).map(function (g) {
-      var at = foldAt(g.key, kind);
+    container.innerHTML = sampleGroup(samples, gridClass, card, !grouped) + groupByWeek(rest).map(function (g) {
       var cards = '<div class="' + gridClass + '">' + g.rows.map(card).join('') + '</div>';
       var count = '<small>' + g.rows.length + '편</small>';
-      if (at && now < at) {
+      if (!grouped) {
         return '<section class="wk-open">' +
           '<h3 class="wk-head">' + PL.esc(weekTitle(g.key)) + count +
-            '<span class="wk-note">' + PL.esc(foldNote(at)) + '</span></h3>' +
+            '<span class="wk-note">' + PL.esc(foldNote(nextFold)) + '</span></h3>' +
           cards +
         '</section>';
       }
@@ -246,6 +269,7 @@
   /* ---------- 이벤트 ---------- */
 
   function boot() {
+    scheduleGroupingRefresh();
     PL.table('reviews').list()
       .then(function (rows) {
         state.reviews = rows || [];

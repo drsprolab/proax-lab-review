@@ -70,7 +70,7 @@ function checkPassword(req) {
   if (String(req.key || '') !== String(pw)) throw new Error('AUTH: 비밀번호가 맞지 않습니다.');
 }
 
-// 주차별 BEST는 한 편만 지정할 수 있고, 지정한 뒤에는 해제할 수 없습니다.
+// 리뷰와 Concept map은 각각 주차별 BEST 한 편만 지정할 수 있고, 지정한 뒤에는 해제할 수 없습니다.
 function validateBestUpdate(table, id, data) {
   if (!Object.prototype.hasOwnProperty.call(data, 'best_of_week')) return;
   var current = getRow(sheetFor(table), id);
@@ -81,11 +81,9 @@ function validateBestUpdate(table, id, data) {
   if (!willBeBest || wasBest) return;
 
   var week = String(current.week_key || '');
-  var alreadySelected = TABLES.some(function (name) {
-    return listRows(sheetFor(name)).some(function (row) {
-      return String(row.id) !== String(id) && String(row.week_key || '') === week &&
-        (row.best_of_week === true || String(row.best_of_week) === 'true');
-    });
+  var alreadySelected = listRows(sheetFor(table)).some(function (row) {
+    return String(row.id) !== String(id) && String(row.week_key || '') === week &&
+      (row.best_of_week === true || String(row.best_of_week) === 'true');
   });
   if (alreadySelected) throw new Error('이번 주 BEST가 이미 지정되어 있습니다.');
 }
