@@ -33,9 +33,8 @@
     return '<div class="inst-who">' + PL.esc(name || '이름 없음') + '</div>';
   }
 
-  function countLabel(list, kind) {
-    var n = list.filter(function (r) { return isSample(r, kind); }).length;
-    return '전체 ' + (list.length - n) + '편' + (n ? ' · Sample ' + n + '편' : '');
+  function countLabel(list) {
+    return '전체 ' + list.length + '편';
   }
 
   function isBest(row) {
@@ -77,8 +76,7 @@
   var groupingTimer = null;
   function scheduleGroupingRefresh() {
     var now = new Date();
-    var hasRows = state.reviews.some(function (row) { return !isSample(row, 'reviews'); }) ||
-      state.maps.some(function (row) { return !isSample(row, 'maps'); });
+    var hasRows = state.reviews.length > 0 || state.maps.length > 0;
     var changeAt = null;
     if (hasRows) {
       var cutoff = currentWeekFoldAt(now);
@@ -127,41 +125,12 @@
       });
   }
 
-  /* ---------- Sample 묶음 ----------
-   * 작성 예시로 남겨 둔 제출물. 주차 묶음에서 빼고 맨 위의 'Sample' 묶음에 따로 둡니다.
-   * 예시를 바꾸려면 구글 시트의 id 를 여기에 넣거나 뺍니다.
-   */
-  var SAMPLE_IDS = {
-    reviews: [
-      '9e9db159-8474-48dd-8926-3a0bf2ec68ec', // 김예서 — Making transparency transparent
-      'acf4cf36-486f-4393-b0ad-8cb3cb48eaf7', // 김재현 — Transfer of training
-      'e243a4d8-d245-4230-9ea9-1af0a5315646', // 오선빈 — Innovation climate profiles
-      'd6a4e60c-2528-4b86-a1f1-3134565eeb18'  // 최지수 — A Review of Self-Regulated Learning
-    ],
-    maps: []
-  };
-
-  function isSample(row, kind) {
-    return SAMPLE_IDS[kind].indexOf(row.id) !== -1;
-  }
-
-  function sampleGroup(rows, gridClass, card) {
-    if (!rows.length) return '';
-    return '<details class="wk-fold wk-sample">' +
-      '<summary class="wk-head">Sample<small>' + rows.length + '편</small>' +
-        '<span class="wk-note">작성 예시</span></summary>' +
-      '<div class="' + gridClass + '">' + rows.map(card).join('') + '</div>' +
-    '</details>';
-  }
-
   function renderWeeks(container, list, kind, gridClass, card) {
     var now = new Date();
-    var samples = list.filter(function (r) { return isSample(r, kind); });
-    var rest = list.filter(function (r) { return !isSample(r, kind); });
-    var groups = groupByWeek(rest);
+    var groups = groupByWeek(list);
     var latestKey = groups.length ? groups[0].key : null;
     var cutoff = currentWeekFoldAt(now);
-    container.innerHTML = sampleGroup(samples, gridClass, card) + groups.map(function (g) {
+    container.innerHTML = groups.map(function (g) {
       var cards = '<div class="' + gridClass + '">' + g.rows.map(card).join('') + '</div>';
       var count = '<small>' + g.rows.length + '편</small>';
       var isNinthReviewWeek = kind === 'reviews' && /9주차/.test(weekTitle(g.key));

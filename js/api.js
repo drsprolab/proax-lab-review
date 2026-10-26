@@ -7,6 +7,23 @@
 
   var TABLE_NAMES = { reviews: 'reviews', students: 'students' };
 
+  /* 목록 정리 (2026-10-26 교수님 요청): 예전 'Sample' 묶음을 없앰
+   * - 김예서·김재현 리뷰는 43주차로 표시
+   * - 나머지 예시 2편(오선빈·최지수)은 사이트에서 보이지 않게 함 (구글 시트의 행은 그대로 남아 있음) */
+  var HIDDEN_IDS = {
+    reviews: [
+      'e243a4d8-d245-4230-9ea9-1af0a5315646', // 오선빈 — Innovation climate profiles
+      'd6a4e60c-2528-4b86-a1f1-3134565eeb18'  // 최지수 — A Review of Self-Regulated Learning
+    ]
+  };
+  var WEEK_FIX = {
+    '9e9db159-8474-48dd-8926-3a0bf2ec68ec': '2026-W43', // 김예서 — Making transparency transparent
+    'acf4cf36-486f-4393-b0ad-8cb3cb48eaf7': '2026-W43'  // 김재현 — Transfer of training
+  };
+  function hidden(table, row) { return !!row && (HIDDEN_IDS[table] || []).indexOf(row.id) !== -1; }
+  function fixRow(row) { if (row && WEEK_FIX[row.id]) row.week_key = WEEK_FIX[row.id]; return row; }
+  function fixRows(table, rows) { return (rows || []).filter(function (r) { return !hidden(table, r); }).map(fixRow); }
+
   // 구글 Apps Script 웹앱 주소 (apps-script/Code.gs 를 배포하고 받은 …/exec 주소).
   // 비어 있으면 'local' = 이 브라우저(localStorage)에만 저장하는 미리보기 모드.
   var GAS_URL = 'https://script.google.com/macros/s/AKfycbx5fCuGE2LXr9yD2HA8ozIWjGhPEv27tq35L97IpZ147RaqXdbiLf48-wE06K9fZsaKjA/exec';
@@ -108,8 +125,8 @@
   function makeApi(table) {
     return {
       name: table,
-      list: function () { return gasGet({ action: 'list', table: table }); },
-      get: function (id) { return gasGet({ action: 'get', table: table, id: id }); },
+      list: function () { return gasGet({ action: 'list', table: table }).then(function (rows) { return fixRows(table, rows); }); },
+      get: function (id) { return gasGet({ action: 'get', table: table, id: id }).then(function (row) { return hidden(table, row) ? null : fixRow(row); }); },
       create: function (data) { return gasPost({ action: 'create', table: table, data: data }); },
       // 선정 변경은 기존 제출 시각을 전달하고, 본문 재제출은 서버의 새 updated_at을 사용합니다.
       update: function (id, data) { return gasPost({ action: 'update', table: table, id: id, data: Object.assign({ submitted_time: null }, data) }); },
