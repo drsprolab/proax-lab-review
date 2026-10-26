@@ -44,7 +44,7 @@
 
   function bestControl(row, kind) {
     var best = isBest(row);
-    var weekLocked = state.reviews.concat(state.maps).some(function (item) {
+    var weekLocked = state[kind].some(function (item) {
       return isBest(item) && String(item.week_key || '') === String(row.week_key || '');
     });
     if (!best && weekLocked) return '';
