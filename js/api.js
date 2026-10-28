@@ -371,12 +371,12 @@
 
   /* ---------- 제출 마감 (한국 시간) ----------
    * 마감은 그 주차(월~일)의 요일·시각으로 정합니다.
-   *  - 논문 리뷰: 일요일 22:00 / Concept map: 수요일 22:00 (밤 10시)
+   *  - 논문 리뷰: 일요일 22:00 / Concept map: 수요일 23:59 (밤 11시 59분)
    * 제출 시간은 학생이 고르는 제출일이 아니라 서버가 기록한 시각(updated_at → created_at)을 씁니다.
    */
   var DEADLINE = {
     reviews: { afterMonday: 6, hour: 22 },
-    concept_maps: { afterMonday: 2, hour: 22 }
+    concept_maps: { afterMonday: 2, hour: 23, minute: 59 }
   };
   var KST = 9 * 3600000;
   var DOW = ['일', '월', '화', '수', '목', '금', '토'];
@@ -386,7 +386,8 @@
     var rule = DEADLINE[kind];
     var mon = weekKeyToDate(weekKeyValue);
     if (!rule || !mon) return null;
-    return Date.UTC(mon.getFullYear(), mon.getMonth(), mon.getDate() + rule.afterMonday, rule.hour) - KST;
+    return Date.UTC(mon.getFullYear(), mon.getMonth(), mon.getDate() + rule.afterMonday,
+      rule.hour, rule.minute || 0, rule.minute === undefined ? 0 : 59) - KST;
   }
 
   // 마지막으로 제출(또는 갱신)한 서버 시각(ms)
