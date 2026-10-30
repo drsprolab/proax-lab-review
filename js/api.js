@@ -35,9 +35,29 @@
    * 실제 확인은 Apps Script(스크립트 속성 PASSWORD)에서 하므로, 비밀번호 없이는 목록·본문·제출이 모두 막힙니다.
    */
   var PASS_KEY = 'proax-review-pass';
+  var BEST_ADMIN_PASS_KEY = 'proax-review-best-admin';
+  var bestAdminActive = false;
   function getPass() { try { return localStorage.getItem(PASS_KEY) || ''; } catch (e) { return ''; } }
   function setPass(v) { try { if (v) localStorage.setItem(PASS_KEY, v); else localStorage.removeItem(PASS_KEY); } catch (e) {} }
+  function getBestAdminPass() { try { return sessionStorage.getItem(BEST_ADMIN_PASS_KEY) || ''; } catch (e) { return ''; } }
+  function setBestAdminPass(v) { try { if (v) sessionStorage.setItem(BEST_ADMIN_PASS_KEY, v); else sessionStorage.removeItem(BEST_ADMIN_PASS_KEY); } catch (e) {} }
   var NEVER = new Promise(function () {});
+
+  function activateBestAdmin() {
+    if (BACKEND !== 'google') return Promise.reject(new Error('공유 데이터 연결이 필요합니다.'));
+    if (!getPass()) { needGate(); return NEVER; }
+    var secret = getBestAdminPass() || window.prompt('Best Review 선정 관리자 비밀번호를 입력해 주세요.');
+    if (!secret) return Promise.resolve(false);
+    return gasPost({ action: 'best-auth', best_key: secret }).then(function () {
+      setBestAdminPass(secret);
+      bestAdminActive = true;
+      return true;
+    }).catch(function (err) {
+      setBestAdminPass('');
+      bestAdminActive = false;
+      throw err;
+    });
+  }
 
   function showGate(message) {
     if (document.getElementById('pw-gate')) {
@@ -115,6 +135,9 @@
   function gasPost(body) {
     if (!getPass()) { needGate(); return NEVER; }
     body.key = getPass();
+    if (body.data && Object.prototype.hasOwnProperty.call(body.data, 'best_of_week')) {
+      body.best_key = getBestAdminPass();
+    }
     return fetch(GAS_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -570,6 +593,8 @@
     openPdfUrl: openPdfUrl,
     doiUrl: doiUrl,
     isLocal: BACKEND === 'local',
+    isBestAdmin: function () { return bestAdminActive; },
+    activateBestAdmin: activateBestAdmin,
     esc: esc,
     toLines: toLines,
     snippet: snippet,

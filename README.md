@@ -194,3 +194,7 @@ SSCI 확인 체크박스와 자동 규칙 점검(국문·MDPI 차단 등)은 제
 - 외부 의존성: Google Fonts(IBM Plex Sans KR / Mono)만 사용. 차트 라이브러리 없음.
 - 디자인 토큰: `--ink #16202b`, `--muted #5a6573`, `--paper #fff`, `--tint #f3f5f8`, `--line #dde2e8`, `--accent #1d4f86`, `--accent-soft #e6edf6`, `--good #1a7f37`, `--warn #b54708`, `--danger #c0392b`.
 - 디자인 레퍼런스: `hrdpro.hanyang.ac.kr/daily-insight/` 톤(절제된 타이포그래피 + 좌측 정렬 문서형 레이아웃).
+
+## Best Review 관리자 권한
+
+Best Review 체크박스는 기본 화면에서 숨깁니다. 관리자 페이지(`/proax-lab-review/?best-admin=1`)에서 별도 관리자 비밀번호를 확인한 경우에만 표시합니다. 각 BEST Apps Script 프로젝트의 **프로젝트 설정 → 스크립트 속성**에 `BEST_ADMIN_PASSWORD`를 설정하고 새 버전으로 배포해야 합니다. 브라우저 표시와 별도로 서버도 인증된 BEST 변경 요청만 저장합니다.

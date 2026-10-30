@@ -69,3 +69,4 @@ python3 -m http.server 8765 --bind 127.0.0.1
 - 비밀번호는 코드·GitHub에 두지 않는다. 교수님이 Apps Script 편집기 → 프로젝트 설정 → 스크립트 속성에서 직접 설정·변경
 - `PASSWORD`가 비어 있으면 잠기지 않음. 예전 Apps Script(auth 모름)일 때는 아무 입력이나 통과(전환기 대비)
 - PRO-AX와 LO_Review 비밀번호는 서로 별개
+- Best Review 체크박스는 기본 화면에서 숨김. `/proax-lab-review/?best-admin=1`에서 별도 `BEST_ADMIN_PASSWORD`로 확인된 브라우저에만 표시하고, Apps Script 서버도 이 키가 없는 `best_of_week` 변경을 거부함. Script Properties에 값을 설정하고 새 버전 배포 필요.

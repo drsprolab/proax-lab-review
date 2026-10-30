@@ -7,6 +7,7 @@
   'use strict';
 
   var PL = window.PL;
+  var BEST_ADMIN_MODE = new URLSearchParams(window.location.search).get('best-admin') === '1';
 
   var state = {
     reviews: [],
@@ -48,6 +49,7 @@
     });
     if (!best && weekLocked) return '';
     if (best) return '<span class="best-week-badge">Best Review of Week</span>';
+    if (!BEST_ADMIN_MODE || !PL.isBestAdmin()) return '';
     return '<label class="best-checkbox" title="Best Review of Week 선정">' +
       '<input type="checkbox" data-best-kind="' + kind + '" data-best-id="' + PL.esc(row.id) +
       '" aria-label="' + PL.esc((row.student || '이름 없음') + ' · Best Review of Week') +
@@ -311,9 +313,12 @@
   attachBestToggle(els.reviewEntries, 'reviews');
   attachBestToggle(els.mapEntries, 'maps');
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', boot);
-  } else {
-    boot();
+  function start() {
+    if (!BEST_ADMIN_MODE) { boot(); return; }
+    PL.activateBestAdmin().catch(function (err) {
+      PL.toast('Best Review 관리자 인증을 완료하지 못했습니다: ' + (err.message || '확인 실패'), 'error');
+    }).then(boot);
   }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+  else start();
 })();
