@@ -1,7 +1,7 @@
 /* PRO-AX Lab Review — 대문(보드)
  * 논문 리뷰 카드와 Concept map 카드를 각각 불러와 박스형으로 보여 줍니다.
  * 카드를 누르면 본문 페이지로 이동하며, 누구나 열람할 수 있습니다.
- * 주차별로 묶고, 매주 목요일 오전 10시부터 지난 주차를 접어 둡니다.
+ * 주차별로 묶습니다. 논문 리뷰는 다음 주 수요일 밤 10시, Concept map은 그 주 목요일 오전 10시에 접습니다.
  */
 (function () {
   'use strict';
@@ -67,7 +67,9 @@
    * 새 주차만 마감 시각까지 펼쳐 두고, 이미 묶인 이전 주차는 계속 접힌 상태로 둡니다.
    */
   var FOLD_HOUR = 10;
+  var REVIEW_FOLD_HOUR = 22;
 
+  // Concept map: 이번 주 목요일 10시에 접습니다(가장 최근 주차만 펼침).
   function currentWeekFoldAt(now) {
     var d = PL.weekStart(now);
     d.setDate(d.getDate() + 3); // 이번 주 목요일
@@ -75,27 +77,37 @@
     return d;
   }
 
+  // 논문 리뷰: 일요일 22:00 마감 → 다음 주 수요일 22:00에 그 주차를 묶음으로 접습니다.
+  function reviewFoldAt(key) {
+    var d = PL.weekKeyToDate(key);
+    if (!d) return null;
+    d = new Date(d);
+    d.setDate(d.getDate() + 7 + 2); // 다음 주 수요일
+    d.setHours(REVIEW_FOLD_HOUR, 0, 0, 0);
+    return d;
+  }
+
   var groupingTimer = null;
   function scheduleGroupingRefresh() {
     var now = new Date();
-    var hasRows = state.reviews.length > 0 || state.maps.length > 0;
     var changeAt = null;
-    if (hasRows) {
-      var cutoff = currentWeekFoldAt(now);
-      if (cutoff > now) changeAt = cutoff;
-      else {
-        // 목요일 10시 이후에는 이번 주말까지 접힌 채 두고, 월요일에 다음 주차 목록을 엽니다.
-        changeAt = PL.weekStart(now);
-        changeAt.setDate(changeAt.getDate() + 7);
-      }
+    function consider(t) { if (t && t > now && (!changeAt || t < changeAt)) changeAt = t; }
+    if (state.maps.length) {
+      consider(currentWeekFoldAt(now));
+      var nextMon = PL.weekStart(now);
+      nextMon.setDate(nextMon.getDate() + 7);
+      consider(nextMon);
     }
+    state.reviews.forEach(function (r) { consider(reviewFoldAt(r.week_key)); });
     if (groupingTimer) window.clearTimeout(groupingTimer);
     if (!changeAt) return;
+    // 아주 먼 시각은 setTimeout 한계를 넘지 않게 나눠서 다시 확인합니다.
+    var wait = Math.min(changeAt.getTime() - now.getTime() + 100, 2147000000);
     groupingTimer = window.setTimeout(function () {
       renderReviews();
       renderMaps();
       scheduleGroupingRefresh();
-    }, Math.max(0, changeAt.getTime() - now.getTime() + 100));
+    }, Math.max(0, wait));
   }
 
   function weekTitle(key) {
@@ -105,7 +117,9 @@
 
   function foldNote(d) {
     var days = ['일', '월', '화', '수', '목', '금', '토'];
-    return (d.getMonth() + 1) + '.' + d.getDate() + '(' + days[d.getDay()] + ') 오전 ' + FOLD_HOUR + '시에 묶음으로 정리';
+    var h = d.getHours();
+    return (d.getMonth() + 1) + '.' + d.getDate() + '(' + days[d.getDay()] + ') ' +
+      (h >= 12 ? '밤 ' + (h > 12 ? h - 12 : h) : '오전 ' + h) + '시에 묶음으로 정리';
   }
 
   // list → [{ key, rows }] 최신 주차부터, 주 안에서는 이름순
@@ -131,12 +145,13 @@
     var now = new Date();
     var groups = groupByWeek(list);
     var latestKey = groups.length ? groups[0].key : null;
-    var cutoff = currentWeekFoldAt(now);
+    var mapCutoff = currentWeekFoldAt(now);
     container.innerHTML = groups.map(function (g) {
       var cards = '<div class="' + gridClass + '">' + g.rows.map(card).join('') + '</div>';
       var count = '<small>' + g.rows.length + '편</small>';
-      var isNinthReviewWeek = kind === 'reviews' && /9주차/.test(weekTitle(g.key));
-      if ((g.key === latestKey || isNinthReviewWeek) && now < cutoff) {
+      var cutoff = kind === 'reviews' ? reviewFoldAt(g.key) : mapCutoff;
+      var stillOpen = kind === 'reviews' ? (cutoff && now < cutoff) : (g.key === latestKey && now < cutoff);
+      if (stillOpen) {
         return '<section class="wk-open">' +
           '<h3 class="wk-head">' + PL.esc(weekTitle(g.key)) + count +
             '<span class="wk-note">' + PL.esc(foldNote(cutoff)) + '</span></h3>' +
