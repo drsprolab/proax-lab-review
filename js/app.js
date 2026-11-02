@@ -328,6 +328,10 @@
   attachBestToggle(els.reviewEntries, 'reviews');
   attachBestToggle(els.mapEntries, 'maps');
 
+  // 관리자 버튼: 관리자 화면에서는 '관리자 나가기'로 바뀐다.
+  var adminLink = document.querySelector('[data-best-admin-link]');
+  if (adminLink && BEST_ADMIN_MODE) { adminLink.textContent = '관리자 나가기'; adminLink.href = 'index.html'; adminLink.classList.add('is-admin'); }
+
   function start() {
     if (!BEST_ADMIN_MODE) { boot(); return; }
     PL.activateBestAdmin().catch(function (err) {
